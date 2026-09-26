@@ -1,0 +1,657 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Team Performance Dashboard</title>  <style> *{box-sizing:border-box}  html,body{   margin:0;   min-height:100%;   font-family:Arial,Helvetica,sans-serif;   background:#080b12;   color:#fff;   overflow-x:hidden;   overflow-y:auto; }  body{min-height:100vh}  button,input{font:inherit} button{cursor:pointer}  /* Remove number input spinner */ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button{   -webkit-appearance:none;   margin:0; }  input[type="number"]{   -moz-appearance:textfield;   appearance:textfield; }  .header{   position:relative;   padding:26px 70px 20px;   border-bottom:1px solid rgba(255,255,255,.08);   background:linear-gradient(180deg,#101522,#0b0e16) }  .header h1{   margin:0;   font-size:27px;   letter-spacing:1px }  .header p{   margin:7px 0 0;   color:#8993a7 }  .menu-btn{   position:absolute;   right:22px;   top:20px;   width:46px;   height:42px;   border:1px solid #263247;   border-radius:10px;   background:#111827;   color:#fff;   font-size:23px }  .container{   max-width:1250px;   margin:auto;   padding:22px }  .balance-summary-row{   display:grid;   grid-template-columns:repeat(4,1fr);   gap:12px;   margin-bottom:20px }  .balance-card, .summary-card{   margin-bottom:0;   padding:16px;   border:1px solid #202c40;   border-radius:10px;   background:linear-gradient(145deg,#111722,#0d121c);   text-align:center }  .balance-summary-row .summary-row{display:contents}  .balance-title,.summary-label{   font-size:13px;   color:#8e9bb0;   letter-spacing:2px }  .balance-value,.summary-value{   margin:8px 0 3px;   font-size:20px;   font-weight:700;   color:#fff }  .balance-value.positive, .balance-value.negative, .summary-value.profit, .summary-value.loss{   color:#fff }  .summary-row{display:contents}  @media(max-width:650px){   .balance-summary-row{     grid-template-columns:1fr   } }  .grid{   display:grid;   grid-template-columns:1fr 1fr;   gap:20px }  .card{   border:1px solid #202c40;   border-radius:16px;   padding:20px;   background:linear-gradient(145deg,#111722,#0d121c) }  .card h2{   font-size:17px;   margin:0 0 18px }  .field{   margin-bottom:14px }
+.amount-input-wrap{position:relative;display:flex;align-items:center}.amount-input-wrap::before{content:"Rs";position:absolute;left:13px;color:#8e9bb0;font-weight:700;pointer-events:none;z-index:1}.amount-input-wrap input{padding-left:38px}  .field label{   display:block;   margin-bottom:7px;   font-size:12px;   color:#8d9ab0 }  input{   width:100%;   padding:12px 13px;   color:#fff;   background:#0a0f18;   border:1px solid #263247;   border-radius:9px;   outline:none }  input:focus{   border-color:#4b6da8 }  input:disabled{   opacity:.65;   cursor:not-allowed }  .two-col{   display:grid;   grid-template-columns:1fr 1fr;   gap:12px }  .result-row{   display:grid;   grid-template-columns:1fr 1fr;   gap:12px;   margin-top:8px }  .result{   border:1px solid #263247;   background:#0a0f18;   border-radius:10px;   padding:13px }  .result-label{   font-size:11px;   color:#7d899d;   margin-bottom:5px }  .result-value{   font-weight:700;   font-size:17px }  .actions{   display:flex;   gap:10px;   margin-top:16px }  .submit-btn,.reset-btn{   flex:1;   border:0;   border-radius:9px;   padding:12px;   font-weight:700 }  .submit-btn{   background:#22c58b;   color:#06120e }  .reset-btn{   background:#202a3b;   color:#d9e1ef }  .payer-buttons{   display:grid;   grid-template-columns:repeat(3,1fr);   gap:6px }  .payer-btn{   border:1px solid #263247;   background:#0b111b;   color:#aeb9ca;   border-radius:7px;   padding:8px 6px;   font-size:12px }  .payer-card{   padding:13px;   border-radius:12px }  .payer-card h2{   font-size:15px;   margin:0 0 10px }  .elimination-card{   margin-top:16px;   padding:18px }  .elimination-card h2{   font-size:16px;   margin:0 0 6px }  .elimination-help{   font-size:11px;   color:#8290a5;   margin:0 0 14px }  .elimination-players{   display:grid;   grid-template-columns:repeat(5,minmax(0,1fr));   gap:10px }  .elimination-option{   display:grid;   grid-template-columns:minmax(0,1fr) 76px;   align-items:center;   gap:8px;   min-width:0;   padding:10px 11px;   border:1px solid #263247;   border-radius:10px;   background:#0b111b;   color:#cbd4e2;   font-size:12px;   overflow:hidden;   transition:border-color .15s ease,background .15s ease }  .elimination-option label{   display:flex;   align-items:center;   gap:7px;   min-width:0;   cursor:pointer }  .elimination-option label span{   overflow-wrap:anywhere;   line-height:1.25 }  .elimination-option input[type="checkbox"]{   width:14px;   height:14px;   margin:0;   accent-color:#22c58b;   flex:0 0 auto }  .elimination-option input[type="number"]{   box-sizing:border-box;   width:100%;   min-width:0;   margin:0;   padding:8px 6px;   border:1px solid #2b394d;   border-radius:7px;   background:#080d15;   color:#f4f7fb;   font:inherit;   text-align:center;   outline:none }  .elimination-option input[type="number"]:focus{   border-color:#39dca1;   box-shadow:0 0 0 2px rgba(57,220,161,.12) }  .elimination-option input[type="number"]:disabled{   opacity:.35;   cursor:not-allowed }  .elimination-option.selected{   border-color:#39dca1;   background:rgba(16,53,40,.72);   color:#fff }  @media(max-width:900px){   .elimination-players{     grid-template-columns:repeat(3,minmax(0,1fr))   } }  @media(max-width:650px){   .elimination-players{     grid-template-columns:repeat(2,minmax(0,1fr));     gap:7px   }    .elimination-option{     padding:9px 8px;     grid-template-columns:minmax(0,1fr) 64px   } }  .payer-btn.active{   border-color:#39dca1;   background:#103528;   color:#fff }  .history-card{   margin-top:20px }  .history-top{   display:flex;   gap:12px;   align-items:center;   margin-bottom:15px }  .history-top h2{   margin:0;   flex:1 }  .match{   border:1px solid #202c40;   border-radius:12px;   padding:14px;   margin-bottom:10px;   background:#0b1019 }  .match-title{   font-size:14px;   font-weight:800;   margin-bottom:10px }  .match-line{   display:flex;   flex-wrap:wrap;   gap:8px 18px;   color:#cbd4e2;   font-size:13px;   line-height:1.5 }  .match-line span{   white-space:nowrap }  .match-line b{   color:#8d9ab0;   font-size:11px;   font-weight:600 }  .match-team{   margin-top:8px;   padding-top:8px;   border-top:1px solid #1d2737 }  .empty{   color:#68758b;   padding:10px 0;   text-align:center }  .side-menu{   position:fixed;   right:0;   top:0;   width:330px;   max-width:90%;   height:100vh;   background:#0c111b;   border-left:1px solid #263247;   z-index:50;   padding:72px 18px 20px;   transform:translateX(100%);   transition:.25s ease;   overflow-y:auto;   overflow-x:hidden;   box-shadow:-15px 0 40px rgba(0,0,0,.45) }  .side-menu.open{   transform:translateX(0) }  .close-menu{   position:absolute;   right:18px;   top:18px;   background:none;   border:0;   color:#fff;   font-size:26px }  .menu-item{   width:100%;   text-align:left;   border:1px solid #202b3e;   background:#111827;   color:#dce4f2;   padding:13px 14px;   margin-bottom:7px;   border-radius:9px }  .menu-content{   display:none;   padding:8px 2px 14px }  .menu-content.active{   display:block }  .player-performance-card{   padding:11px;   margin:7px 0;   border:1px solid #263247;   border-radius:9px;   background:#101725 }  .player-performance-name{   font-size:13px;   font-weight:700;   margin-bottom:8px;   color:#f3f6fb }  .player-performance-values{   display:grid;   grid-template-columns:repeat(3,minmax(0,1fr));   gap:6px }  .player-performance-values div{   background:#0a0f18;   border-radius:6px;   padding:8px 5px;   text-align:center }  .player-performance-values small{   display:block;   font-size:9px;   color:#8d9ab0;   margin-bottom:4px }  .player-performance-values strong{   font-size:13px;   color:#dce4f2 }  .player-performance-note{   font-size:10px;   color:#8290a5;   margin:0 0 8px }  .name-row{   display:grid;   grid-template-columns:1fr 1fr;   gap:8px;   margin-bottom:8px }  .save-names{   width:100%;   padding:11px;   margin-top:5px;   border:0;   border-radius:9px;   background:#526fe0;   color:#fff;   font-weight:700 }  .paid-row{   display:flex;   justify-content:space-between;   padding:10px 2px;   border-bottom:1px solid #1d2737;   color:#dbe3ef }  .search-box{   margin-bottom:10px }  .search-help{   font-size:11px;   color:#68758b;   margin:5px 0 10px }  .team-statistics{   margin-bottom:20px;   padding:14px }  .team-statistics h2{   font-size:15px;   margin:0 0 10px }  .statistics-grid{   display:grid;   grid-template-columns:repeat(5,1fr);   gap:7px }  .stat-card{   padding:9px 7px;   border:1px solid #202c40;   border-radius:8px;   background:linear-gradient(145deg,#111722,#0d121c);   text-align:center }  .stat-label{   font-size:10px;   color:#8e9bb0;   letter-spacing:.5px;   line-height:1.3 }  .stat-value{   margin-top:5px;   font-size:16px;   font-weight:700;   color:#fff;   overflow-wrap:anywhere }  @media(max-width:900px){   .statistics-grid{     grid-template-columns:repeat(3,1fr)   } }  @media(max-width:500px){    .statistics-grid{     grid-template-columns:repeat(2,1fr)   }    .stat-card{     padding:8px 6px   }    .stat-label{     font-size:9px   }    .stat-value{     font-size:15px   } }  @media(max-width:800px){    .grid{     grid-template-columns:1fr   }    .header{     padding-left:22px   } }  @media(max-width:500px){    .container{     padding:14px   }    .two-col,   .result-row{     grid-template-columns:1fr   }    .payer-buttons{     grid-template-columns:repeat(2,1fr);     gap:5px   }    .payer-btn{     padding:7px 5px;     font-size:11px   }    .history-top{     align-items:stretch;     flex-direction:column   }    .name-row{     grid-template-columns:1fr   } } .auth-btn{position:absolute;right:78px;top:20px;height:42px;padding:0 16px;border:1px solid #263247;border-radius:10px;background:#111827;color:#fff;font-weight:700;font-size:12px}.auth-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.72)}.auth-overlay.hidden{display:none}.auth-box{position:relative;width:100%;max-width:390px;padding:22px;border:1px solid #263247;border-radius:16px;background:linear-gradient(145deg,#111722,#0d121c);box-shadow:0 20px 60px rgba(0,0,0,.55)}.auth-close{position:absolute;right:14px;top:12px;width:34px;height:34px;border:0;background:transparent;color:#aeb9ca;font-size:28px;line-height:1;border-radius:8px;cursor:pointer}.auth-close:hover{background:#182131;color:#fff}.auth-box h2{margin:0 0 7px;font-size:20px}.auth-box p{color:#8993a7;font-size:12px;line-height:1.5}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:16px 0}.auth-tab{border:1px solid #263247;background:#0b111b;color:#aeb9ca;border-radius:8px;padding:10px;font-weight:700;font-size:11px}.auth-tab.active{border-color:#39dca1;background:#103528;color:#fff}.auth-form{display:none}.auth-form.active{display:block}.auth-form label{display:block;margin:11px 0 6px;font-size:11px;color:#8d9ab0}.auth-submit{width:100%;margin-top:15px;border:0;border-radius:9px;padding:12px;background:#22c58b;color:#06120e;font-weight:700}.auth-error{min-height:18px;margin-top:10px;color:#ff7d7d;font-size:12px}@media(max-width:500px){.auth-btn{right:68px;top:20px;padding:0 10px}.menu-btn{right:12px}}
+.verification-overlay{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.78)}.verification-overlay.hidden{display:none}.verification-box{position:relative;width:100%;max-width:390px;padding:22px;border:1px solid #263247;border-radius:16px;background:linear-gradient(145deg,#111722,#0d121c);box-shadow:0 20px 60px rgba(0,0,0,.6)}.verification-box h2{margin:0 0 7px;font-size:20px}.verification-box p{color:#8993a7;font-size:12px;line-height:1.5;margin:0 0 16px}.verification-box label{display:block;margin:11px 0 6px;font-size:11px;color:#8d9ab0}.verification-box input{margin-bottom:4px}.verification-box .auth-submit{margin-top:12px}
+.verification-manager{margin-top:12px}.verification-manager.hidden{display:none}.verification-manager h3{margin:0 0 6px;font-size:14px}.verification-manager p{font-size:10px;color:#8290a5;line-height:1.5;margin:0 0 10px}.verification-code-row{display:grid;grid-template-columns:1fr auto;gap:7px;margin-bottom:10px}.verification-code-row button{border:0;border-radius:8px;padding:10px 12px;background:#22c58b;color:#06120e;font-weight:700;font-size:11px}.verification-list{max-height:260px;overflow:auto}.verification-item{border:1px solid #263247;border-radius:9px;background:#0a0f18;padding:10px;margin-top:7px}.verification-item .email{font-size:11px;color:#dce4f2;overflow-wrap:anywhere}.verification-item .code{font-size:14px;font-weight:800;letter-spacing:1px;margin-top:5px}.verification-item .status{font-size:10px;color:#8290a5;margin-top:4px}.verification-item.used{opacity:.65}
+
+
+.instagram-profile{width:100%;max-width:820px;margin:0 auto;padding:10px 24px 24px}.instagram-top{display:grid;grid-template-columns:132px minmax(0,1fr);column-gap:28px;align-items:center;padding:26px 8px 22px;border-bottom:1px solid #263247}.instagram-avatar{width:112px;height:112px;border-radius:50%;background:linear-gradient(145deg,#1b2638,#0b111b);border:3px solid #52627b;overflow:hidden;display:grid;place-items:center;font-size:38px;box-shadow:0 10px 30px rgba(0,0,0,.4);justify-self:center}.instagram-avatar img{width:100%;height:100%;object-fit:cover}.instagram-main{min-width:0}.instagram-name-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.instagram-name-row h2{margin:0;font-size:25px;font-weight:800;letter-spacing:-.4px}.instagram-username{margin:6px 0 18px;color:#8d9ab0;font-size:13px}.instagram-stats{display:flex;align-items:center;gap:36px}.instagram-stat{text-align:left;min-width:65px}.instagram-stat strong{display:block;font-size:18px;line-height:1.2;color:#fff}.instagram-stat span{display:block;font-size:10px;color:#8290a5;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}.instagram-bio{color:#dce4f2;font-size:12px;line-height:1.55;margin:16px 8px 0 168px;max-width:600px;text-align:left;white-space:pre-wrap}.instagram-actions{display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap;margin:14px 8px 0 168px}.instagram-actions button{border:1px solid #263247;background:#111827;color:#fff;border-radius:8px;padding:9px 16px;font-weight:700;font-size:11px;min-width:120px}.instagram-actions button.primary{background:#22c58b;color:#06120e;border-color:#22c58b}.instagram-profile:after{content:"";display:block;margin-top:22px;border-bottom:1px solid #263247}.profile-edit-panel{margin-top:12px;padding:14px;border:1px solid #263247;border-radius:12px;background:#0a0f18}.profile-edit-panel.hidden{display:none}.profile-public-note{font-size:10px;color:#68758b;margin:10px 0 0}.player-id-badge{display:inline-block;padding:3px 7px;border-radius:999px;border:1px solid #263247;background:#0b111b;color:#aeb9ca;font-size:9px;margin-left:5px}.manager-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto auto auto}.manager-row .locked-id{padding:8px 9px;border:1px solid #263247;border-radius:7px;background:#080d15;color:#8e9bb0;font-size:10px;white-space:nowrap}.player-choice button .choice-id{float:right;color:#8290a5;font-size:9px}.player-choice button .choice-photo{width:28px;height:28px;border-radius:50%;overflow:hidden;display:inline-grid;place-items:center;background:#263247;vertical-align:middle;margin-right:8px}.player-choice button .choice-photo img{width:100%;height:100%;object-fit:cover}@media(max-width:600px){.instagram-profile{padding:6px 12px 18px}.instagram-top{grid-template-columns:92px minmax(0,1fr);column-gap:17px;padding:20px 4px 18px}.instagram-avatar{width:88px;height:88px;font-size:31px}.instagram-name-row h2{font-size:19px}.instagram-username{margin-bottom:13px}.instagram-stats{gap:20px}.instagram-stat strong{font-size:16px}.instagram-bio{margin:14px 4px 0}.instagram-actions{margin:12px 4px 0}.instagram-actions button{min-width:105px;padding:8px 11px}}
+.profile-btn-wrap{position:absolute;right:145px;top:20px}.profile-top-btn{height:42px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid #263247;border-radius:10px;background:#111827;color:#fff;font-weight:700;font-size:12px}.profile-top-btn span:first-child{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#263247;overflow:hidden}.profile-top-btn img,.profile-avatar img{width:100%;height:100%;object-fit:cover}.social-overlay,.player-login-overlay{position:fixed;inset:0;z-index:140;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.78)}.social-overlay.hidden,.player-login-overlay.hidden{display:none}.social-box,.player-login-box{position:relative;width:100%;max-width:900px;max-height:92vh;overflow:auto;padding:22px;border:1px solid #263247;border-radius:16px;background:linear-gradient(145deg,#111722,#0d121c);box-shadow:0 20px 60px rgba(0,0,0,.65)}.player-login-box{max-width:460px}.social-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:16px}.social-tab{border:1px solid #263247;background:#0b111b;color:#aeb9ca;border-radius:8px;padding:10px;font-weight:700;font-size:11px}.social-tab.active{border-color:#39dca1;background:#103528;color:#fff}.social-panel{display:none}.social-panel.active{display:block}.profile-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}.profile-head h2{margin:0 0 4px}.profile-head p{margin:0;color:#8290a5;font-size:12px}.profile-avatar{width:72px;height:72px;border-radius:50%;background:#263247;display:grid;place-items:center;font-size:28px;overflow:hidden;border:1px solid #394963}.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.profile-grid label{display:block;margin-bottom:6px;font-size:11px;color:#8d9ab0}.social-primary,.profile-actions button{border:0;border-radius:9px;padding:11px 13px;background:#22c58b;color:#06120e;font-weight:700;margin-top:12px}.profile-actions{display:flex;gap:8px;flex-wrap:wrap}.profile-actions button{background:#263247;color:#fff}.profile-info{margin-top:14px;padding:12px;border:1px solid #263247;border-radius:10px;color:#cbd4e2;font-size:12px;line-height:1.7}.nested-panel{margin-top:14px;padding:14px;border:1px solid #263247;border-radius:10px;background:#0a0f18}.nested-panel.hidden,.hidden{display:none}.search-result,.conversation-item,.player-choice{border:1px solid #263247;border-radius:10px;background:#0a0f18;padding:11px;margin-top:8px}.search-result{display:flex;justify-content:space-between;gap:10px;align-items:center}.search-result strong{display:block}.search-result small{color:#8290a5}.search-result button,.conversation-item button{border:1px solid #263247;background:#111827;color:#fff;border-radius:7px;padding:7px 9px}.chat-layout{display:grid;grid-template-columns:230px 1fr;gap:10px;min-height:430px}.chat-list{border:1px solid #263247;border-radius:10px;padding:8px;overflow:auto}.conversation-item{cursor:pointer}.conversation-item.active{border-color:#39dca1;background:#103528}.chat-main{border:1px solid #263247;border-radius:10px;display:flex;flex-direction:column;min-height:430px}.chat-header{padding:11px;border-bottom:1px solid #263247;font-weight:700}.chat-messages{flex:1;padding:12px;overflow:auto}.chat-message{max-width:80%;padding:9px 11px;border-radius:10px;background:#111827;margin:7px 0;font-size:12px}.chat-message.mine{margin-left:auto;background:#103528}.chat-message small{display:block;color:#8290a5;margin-top:4px}.chat-compose{display:grid;grid-template-columns:1fr auto;gap:7px;padding:9px;border-top:1px solid #263247}.chat-compose button{border:0;border-radius:8px;padding:0 14px;background:#22c58b;color:#06120e;font-weight:700}.chat-identity{font-size:11px;color:#8290a5;margin-bottom:8px}.player-choice-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.player-choice button{width:100%;border:1px solid #263247;background:#111827;color:#fff;border-radius:8px;padding:11px;text-align:left}.player-choice button:disabled{opacity:.45;cursor:not-allowed}.player-choice small{display:block;color:#8290a5;margin-top:3px}.player-login-box input{margin-top:9px}.manager-row{display:grid;grid-template-columns:1fr auto auto;gap:7px;align-items:center;padding:8px 0;border-bottom:1px solid #1d2737}.manager-row button{border:1px solid #263247;background:#111827;color:#fff;border-radius:7px;padding:7px}.manager-row button.danger{background:#3a1820;color:#ff9aa5}.ownership-card{padding:12px;border:1px solid #263247;border-radius:10px;margin-top:10px}
+@media(max-width:700px){.profile-btn-wrap{right:115px}.profile-top-btn{padding:0 8px}.profile-top-btn span:last-child{display:none}.profile-grid,.chat-layout{grid-template-columns:1fr}.chat-list{max-height:170px}.player-choice-list{grid-template-columns:1fr}}
+</style> <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script>
+  // PASTE YOUR FIREBASE WEB APP CONFIG HERE.
+  const firebaseConfig = {
+    apiKey: "AIzaSyAO7eUmWouW0V5IBJoGLiW2ulzW2HSo4t0",
+    authDomain: "last-legacy-626d3.firebaseapp.com",
+    projectId: "last-legacy-626d3",
+    storageBucket: "last-legacy-626d3.firebasestorage.app",
+    messagingSenderId: "365477291630",
+    appId: "1:365477291630:web:4efe0587d0d0f25a61687f",
+    measurementId: "G-Q4QHJR2BSQ"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+</script>
+</head>  <body>  <header class="header">   <h1>TEAM PERFORMANCE DASHBOARD</h1>   <p>Financial &amp; Team Performance Tracker</p>   <button class="auth-btn" id="loginBtn" type="button">LOGIN</button><button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button> </header>  <aside class="side-menu" id="sideMenu">    <button class="close-menu" id="closeMenu" aria-label="Close menu">×</button>    <button class="menu-item" data-section="namesSection">     Player Name Setting   </button>    <div class="menu-content" id="namesSection">      <div class="name-row">       <input id="nameP1" placeholder="Player 1">       <input id="nameP2" placeholder="Player 2">     </div>      <div class="name-row">       <input id="nameP3" placeholder="Player 3">       <input id="nameP4" placeholder="Player 4">     </div>      <div class="name-row">       <input id="nameP5" placeholder="Player 5">       <input value="Balance" disabled>     </div>      <button class="save-names" id="saveNames">       SAVE PLAYER NAMES     </button>    </div>    <button class="menu-item" data-section="menuHistorySection">     Match History   </button>    <div class="menu-content" id="menuHistorySection">      <div class="search-box">       <input         id="menuHistorySearch"         type="number"         min="1"         step="1"         placeholder="Search match number"       >     </div>      <div class="search-help">       Enter any match number, such as 1, 2, 25 or 100.     </div>      <div id="menuHistoryList"></div>    </div>    <button class="menu-item" data-section="playerPerformanceSection">     Player Performance   </button>    <div class="menu-content" id="playerPerformanceSection">     <div id="playerPerformanceList"></div>   </div>    <button class="menu-item" data-section="paidSection">     Player Paid Amount   </button>    <div class="menu-content" id="paidSection">     <div id="paidTotalsList"></div>   </div>  <button class="menu-item" id="verificationManagerBtn" type="button">Verification Codes</button>    <div class="menu-content" id="verificationManagerSection">      <div class="verification-manager">        <h3>Customer Verification Codes</h3>        <p>Owner only. Each customer email can generate up to 10 verification codes per Nepal day. Only the latest code works; older codes are automatically replaced. The daily limit resets tomorrow.</p>        <div class="verification-code-row">          <input id="verificationManagerEmail" type="email" placeholder="Customer email" autocomplete="off">          <button id="generateVerificationBtn" type="button">GENERATE</button>        </div>        <div style="font-size:10px;color:#68758b;margin-bottom:8px">Codes are stored in Firestore collection <b>verificationCodes</b>. Only the newest active code for that email can create an account.</div>        <div class="auth-error" id="verificationManagerError"></div>        <div class="verification-list" id="verificationManagerList"></div>      </div>    </div>  </aside>  <div class="auth-overlay hidden" id="authOverlay"><div class="auth-box"><button class="auth-close" id="authClose" type="button" aria-label="Close login">×</button><h2 id="authTitle">Login</h2><p>Use your Firebase account to access your private dashboard data.</p><div class="auth-tabs"><button class="auth-tab active" id="loginTab" type="button">LOGIN</button><button class="auth-tab" id="createTab" type="button">CREATE ACCOUNT</button></div><form class="auth-form active" id="loginForm"><label for="loginDashboardId">Dashboard ID</label><input id="loginDashboardId" type="text" inputmode="numeric" maxlength="10" placeholder="10-digit Dashboard ID (Owner: 1234)" autocomplete="username"><label for="loginPass">Password</label><input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password"><button class="auth-submit" type="submit">LOG IN</button><button class="auth-submit" id="googleLoginBtn" type="button" style="margin-top:8px;background:#263247;color:#fff">CONTINUE WITH GOOGLE</button></form><form class="auth-form" id="createForm"><label for="createEmail">Email</label><input id="createEmail" type="email" placeholder="Enter email" autocomplete="email"><label for="createPass">Password</label><input id="createPass" type="password" minlength="6" placeholder="At least 6 characters" autocomplete="new-password"><label for="createCountry">Country</label><select id="createCountry" style="width:100%;padding:12px 13px;color:#fff;background:#0a0f18;border:1px solid #263247;border-radius:9px;outline:none"><option value="NP">Nepal — NPR / Rs</option><option value="IN">India — INR / ₹</option><option value="US">United States — USD / $</option><option value="GB">United Kingdom — GBP / £</option><option value="AU">Australia — AUD / $</option><option value="CA">Canada — CAD / $</option><option value="AE">United Arab Emirates — AED / د.إ</option><option value="BD">Bangladesh — BDT / ৳</option><option value="PK">Pakistan — PKR / Rs</option><option value="LK">Sri Lanka — LKR / Rs</option><option value="JP">Japan — JPY / ¥</option><option value="CN">China — CNY / ¥</option></select><div style="font-size:10px;color:#68758b;margin-top:7px">Your Dashboard ID will be assigned automatically after verification.</div><button class="auth-submit" type="submit">CREATE ACCOUNT</button></form><div class="auth-error" id="authError"></div></div></div><div class="verification-overlay hidden" id="verificationOverlay">
+  <div class="verification-box">
+    <button class="auth-close" id="verificationClose" type="button" aria-label="Close verification">×</button>
+    <h2>Verification Required</h2>
+    <p>This code was provided to you by the dashboard owner. It is assigned to your email and can be used only once.</p>
+    <label for="verificationCodeInput">Verification Code</label>
+    <input id="verificationCodeInput" type="password" placeholder="Enter verification code" autocomplete="off">
+    <button class="auth-submit" id="verifyCreateBtn" type="button">VERIFY &amp; CREATE ACCOUNT</button>
+    <div class="auth-error" id="verificationError"></div>
+  </div>
+</div>
+<div class="profile-btn-wrap"><button class="profile-top-btn" id="profileTopBtn" type="button"><span id="profileAvatarTop">◉</span><span id="profileTopName">Profile</span></button></div>
+<div class="social-overlay hidden" id="socialOverlay"><div class="social-box"><button class="auth-close" id="socialClose" type="button">×</button><div class="social-tabs"><button class="social-tab active" id="profileTabBtn" type="button">PROFILE</button><button class="social-tab" id="searchTabBtn" type="button">SEARCH</button><button class="social-tab" id="chatTabBtn" type="button">CHAT</button></div>
+<section class="social-panel active" id="profilePanel"><div class="instagram-profile"><div class="instagram-top"><div class="instagram-avatar" id="profileAvatarBig">◉</div><div class="instagram-main"><div class="instagram-name-row"><h2 id="profileDisplayName">Your Profile</h2></div><div class="instagram-username" id="profileMeta">@username</div><div class="instagram-stats"><div class="instagram-stat"><strong id="profilePlayerCount">0</strong><span>Players</span></div><div class="instagram-stat"><strong id="profileMatchCount">0</strong><span>Matches</span></div></div></div></div><div class="instagram-bio" id="profileBioDisplay">No bio yet.</div><div class="instagram-actions"><button class="primary" id="editProfileBtn" type="button">EDIT PROFILE</button><button id="managePlayersBtn" type="button">MEMBERS / PLAYERS</button><button id="ownershipBtn" type="button">ACCOUNT OWNERSHIP</button></div><div id="profileEditPanel" class="profile-edit-panel hidden"><div class="profile-grid"><div><label>Profile Name</label><input id="profileNameInput" placeholder="Your name"></div><div><label>Username</label><input id="profileUsernameInput" placeholder="unique_username"></div><div><label>Bio</label><textarea id="profileBioInput" placeholder="Write something about your team or yourself" style="width:100%;min-height:80px;resize:vertical;padding:12px 13px;color:#fff;background:#0a0f18;border:1px solid #263247;border-radius:9px;outline:none;font:inherit"></textarea></div><div><label>Profile Picture URL</label><input id="profilePhotoInput" placeholder="https://..."></div><div><label>Country</label><select id="profileCountry" style="width:100%;padding:12px 13px;color:#fff;background:#0a0f18;border:1px solid #263247;border-radius:9px;outline:none"><option value="NP">Nepal — NPR / Rs</option><option value="IN">India — INR / ₹</option><option value="US">United States — USD / $</option><option value="GB">United Kingdom — GBP / £</option><option value="AU">Australia — AUD / $</option><option value="CA">Canada — CAD / $</option><option value="AE">United Arab Emirates — AED / د.إ</option><option value="BD">Bangladesh — BDT / ৳</option><option value="PK">Pakistan — PKR / Rs</option><option value="LK">Sri Lanka — LKR / Rs</option><option value="JP">Japan — JPY / ¥</option><option value="CN">China — CNY / ¥</option></select></div></div><button class="social-primary" id="saveProfileBtn" type="button">SAVE PROFILE</button><p class="profile-public-note">Profile editing does not require entering a Dashboard ID or password. Your login credentials stay outside the profile.</p></div><div class="profile-info" id="profileInfo"></div><div id="playerManagerPanel" class="nested-panel hidden"></div></div></section>
+<section class="social-panel" id="searchPanel"><h2>Find a User</h2><input id="userSearchInput" placeholder="Search name, username or 10-digit ID"><button class="social-primary" id="userSearchBtn" type="button">SEARCH</button><div id="userSearchResults"></div></section>
+<section class="social-panel" id="chatPanel"><h2>Chat</h2><div id="chatIdentity" class="chat-identity">Log in and choose a player to chat.</div><div class="chat-layout"><div class="chat-list" id="chatList"></div><div class="chat-main"><div id="chatHeader" class="chat-header">Select a conversation</div><div id="chatMessages" class="chat-messages"></div><div class="chat-compose"><input id="chatInput" placeholder="Write a message..."><button id="sendChatBtn" type="button">SEND</button></div></div></div></section>
+</div></div>
+<div class="player-login-overlay hidden" id="playerLoginOverlay"><div class="player-login-box"><button class="auth-close" id="playerLoginClose" type="button">×</button><h2>Choose Player</h2><p>Select who is chatting. A player already active on another device cannot be selected.</p><div id="playerChoiceList" class="player-choice-list"></div><div id="playerAuthArea" class="hidden"><h3 id="playerAuthTitle">Player Login</h3><input id="playerEmailInput" type="email" placeholder="Player email"><input id="playerPassInput" type="password" placeholder="Player password"><button class="social-primary" id="playerAuthBtn" type="button">LOGIN PLAYER</button><div class="auth-error" id="playerAuthError"></div><p style="font-size:10px;color:#68758b;margin-top:8px">Player ID is automatic and cannot be changed. Player login credentials are separate from the Dashboard profile.</p></div></div></div>
+<main class="container">    <section class="balance-summary-row">      <section class="balance-card">        <div class="balance-title">         TOTAL BALANCE       </div>        <div class="balance-value" id="totalBalance">         Rs 0.00       </div>      </section>      <section class="summary-row">        <div class="summary-card">          <div class="summary-label">           TOTAL REVENUE         </div>          <div class="summary-value" id="totalRevenue">           Rs 0.00         </div>        </div>        <div class="summary-card">          <div class="summary-label">           TOTAL PROFIT         </div>          <div class="summary-value profit" id="totalProfit">           Rs 0.00         </div>        </div>        <div class="summary-card">          <div class="summary-label">           TOTAL LOSS         </div>          <div class="summary-value loss" id="totalLoss">           Rs 0.00         </div>        </div>      </section>    </section>    <section class="card team-statistics">      <h2>Team Statistics</h2>      <div class="statistics-grid">        <div class="stat-card">         <div class="stat-label">AVERAGE RANK</div>         <div class="stat-value" id="averageRank">0.00</div>       </div>        <div class="stat-card">         <div class="stat-label">TOTAL WIN</div>         <div class="stat-value" id="teamTotalWin">0</div>       </div>        <div class="stat-card">         <div class="stat-label">TOTAL GAMES</div>         <div class="stat-value" id="teamTotalGames">0</div>       </div>        <div class="stat-card">         <div class="stat-label">TOTAL PLACEMENT POINT</div>         <div class="stat-value" id="teamTotalPlacement">0.00</div>       </div>        <div class="stat-card">         <div class="stat-label">TOTAL ELIMINATION POINT</div>         <div class="stat-value" id="teamTotalElimination">0.00</div>       </div>        <div class="stat-card">         <div class="stat-label">TOTAL POINT</div>         <div class="stat-value" id="teamTotalPoints">0.00</div>       </div>        <div class="stat-card">         <div class="stat-label">WIN RATE</div>         <div class="stat-value" id="teamWinRate">0.00%</div>       </div>        <div class="stat-card">         <div class="stat-label">AVERAGE PLACEMENT POINT</div>         <div class="stat-value" id="averagePlacement">0.00</div>       </div>        <div class="stat-card">         <div class="stat-label">AVERAGE ELIMINATION POINT</div>         <div class="stat-value" id="averageElimination">0.00</div>       </div>        <div class="stat-card">         <div class="stat-label">AVERAGE TOTAL POINT</div>         <div class="stat-value" id="averageTotalPoints">0.00</div>       </div>      </div>    </section>    <div class="grid">      <section class="card">        <h2>Financial Performance</h2>        <div class="field">          <label for="paidAmount">           Paid Amount <span style="color:#68758b;font-size:10px">(Optional)</span>         </label>          <div class="amount-input-wrap">          <input           id="paidAmount"           type="number"           min="0"           step="0.01"           placeholder="0.00"         >        </div>        </div>        <div class="field">          <label for="revenueAmount">           Revenue Amount         </label>          <div class="amount-input-wrap">          <input           id="revenueAmount"           type="number"           min="0"           step="0.01"           placeholder="0.00"         >        </div>        </div>        <div class="result-row">          <div class="result">            <div class="result-label">             PROFIT / LOSS AMOUNT           </div>            <div class="result-value" id="profitLossAmount">             Rs 0.00           </div>          </div>          <div class="result">            <div class="result-label">             PROFIT / LOSS %           </div>            <div class="result-value" id="profitLossPercent">             0.00%           </div>          </div>        </div>      </section>      <section class="card">        <h2>Team Performance</h2>        <div class="two-col">          <div class="field">            <label for="totalGames">             Total Games           </label>            <input             id="totalGames"             type="number"             min="0"             step="1"             placeholder="Total games"           >          </div>          <div class="field">            <label for="rank">             Rank           </label>            <input             id="rank"             type="number"             min="1"             max="12"             step="1"             placeholder="1 - 12"           >          </div>          <div class="field">            <label for="win">             Win           </label>            <input             id="win"             type="number"             min="0"             step="1"             placeholder="0 - Total Games"           >          </div>          <div class="field">            <label for="placement">             Placement Point           </label>            <input             id="placement"             type="number"             min="0"             step="0.01"             placeholder="0 - Total Games × 12"           >          </div>          <div class="field">            <label for="elimination">             Elimination Point           </label>            <input             id="elimination"             type="number"             min="0"             step="1"             placeholder="Total player eliminations"           >          </div>          <div class="field">            <label for="total">             Total Points           </label>            <input             id="total"             type="number"             readonly             placeholder="Placement + Elimination"           >          </div>        </div>      </section>    </div>    <section class="card elimination-card">      <h2>Player Elimination</h2>      <p class="elimination-help">       Choose up to 4 eliminated players. Their elimination counts must exactly equal the Elimination Point entered in Team Performance.     </p>      <div       class="elimination-players"       id="eliminationPlayers"     ></div>    </section>    <section     class="card payer-card"     style="margin-top:16px"   >      <h2>Who Paid?</h2>      <div       class="payer-buttons"       id="payerButtons"     ></div>    </section>    <div     class="actions"     style="margin-top:16px"   >      <button       class="submit-btn"       id="submitBtn"     >       SUBMIT     </button>      <button       class="reset-btn"       id="resetBtn"     >       RESET     </button>    </div>    <section class="card history-card">      <div class="history-top">        <h2>Match History</h2>        <div         style="font-size:12px;color:#68758b"       >         Latest 2 matches       </div>      </div>      <div id="historyList"></div>    </section>  </main>  <script>  (function(){  "use strict";  const STORAGE = {users:"users"};
+  const OWNER_DASHBOARD_ID = "1234";
+  const VERIFICATION_COLLECTION = "verificationCodes";
+  let accounts = {};
+  let currentAccountId = null;
+  let cloudReady = true;
+  let currentUser = null;
+  const defaultPlayerNames = {p1:"Player 1",p2:"Player 2",p3:"Player 3",p4:"Player 4",p5:"Player 5",balance:"Balance"};
+  let playerNames = {...defaultPlayerNames};
+  let selectedPayer = "p1";
+  let selectedEliminations = [];
+  let playerEliminationCounts = {};
+  let paidTotals = {p1:0,p2:0,p3:0,p4:0,p5:0,balance:0};
+  let matchHistory = [];
+  let totalBalance = 0;
+  let profileData={name:"",username:"",photoURL:"",bio:"",createdAt:null,country:"NP"};
+  let playerDefinitions={p1:{id:"p1",name:"Player 1",photoURL:"",playerId:"",canManage:false},p2:{id:"p2",name:"Player 2",photoURL:"",playerId:"",canManage:false},p3:{id:"p3",name:"Player 3",photoURL:"",playerId:"",canManage:false},p4:{id:"p4",name:"Player 4",photoURL:"",playerId:"",canManage:false},p5:{id:"p5",name:"Player 5",photoURL:"",playerId:"",canManage:false}};
+  let activePlayer=null;
+  let activeConversation=null;
+  let conversationUnsub=null;
+  let playerAuthUser=null;
+  const playerApp=firebase.apps.find(function(a){return a.name==="playerAuth";})||firebase.initializeApp(firebaseConfig,"playerAuth");
+  const playerAuth=playerApp.auth();
+
+  function $(id){return document.getElementById(id);}
+  function formatNumber(value){const n=Number(value);if(!Number.isFinite(n))return "0.00";return n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function currencyInfo(code){const m={NP:{symbol:"Rs",code:"NPR"},IN:{symbol:"₹",code:"INR"},US:{symbol:"$",code:"USD"},GB:{symbol:"£",code:"GBP"},AU:{symbol:"$",code:"AUD"},CA:{symbol:"$",code:"CAD"},AE:{symbol:"د.إ",code:"AED"},BD:{symbol:"৳",code:"BDT"},PK:{symbol:"Rs",code:"PKR"},LK:{symbol:"Rs",code:"LKR"},JP:{symbol:"¥",code:"JPY"},CN:{symbol:"¥",code:"CNY"}};return m[code]||m.NP;}
+  let accountCountry="NP";
+  function money(value){const n=Number(value)||0;const sign=n<0?"-":"";const c=currencyInfo(accountCountry);return sign+c.symbol+" "+formatNumber(Math.abs(n));}
+  function moneyLabel(value){return money(value);}
+  function escapeHtml(value){return String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;");}
+
+  async function saveData(){
+    if(!auth.currentUser)return false;
+    const uid=auth.currentUser.uid;
+    const data={names:{...playerNames},totals:{...paidTotals},history:[...matchHistory],balance:totalBalance};
+    accounts[uid]={data};
+    try{
+      await db.collection(STORAGE.users).doc(uid).set({dashboardId: currentAccountId||"",email: auth.currentUser.email||"",country:accountCountry,profile:profileData,players:playerDefinitions,data:data,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      return true;
+    }catch(error){console.error("Cloud save failed:",error);alert("Your data could not be saved online. Check Firebase Firestore rules and connection.");return false;}
+  }
+
+  function resetAccountData(){playerNames={...defaultPlayerNames};selectedPayer="p1";selectedEliminations=[];playerEliminationCounts={};paidTotals={p1:0,p2:0,p3:0,p4:0,p5:0,balance:0};matchHistory=[];totalBalance=0;accountCountry="NP";profileData={name:"",username:"",photoURL:"",bio:"",createdAt:null,country:"NP"};playerDefinitions={p1:{id:"p1",name:"Player 1",photoURL:"",playerId:"",canManage:false},p2:{id:"p2",name:"Player 2",photoURL:"",playerId:"",canManage:false},p3:{id:"p3",name:"Player 3",photoURL:"",playerId:"",canManage:false},p4:{id:"p4",name:"Player 4",photoURL:"",playerId:"",canManage:false},p5:{id:"p5",name:"Player 5",photoURL:"",playerId:"",canManage:false}};Object.keys(playerDefinitions).forEach(function(k){playerEliminationCounts[k]="";});}
+  function loadData(){accounts={};currentAccountId=null;currentUser=null;resetAccountData();}
+  function loadAccountData(profile){
+    const data=profile&&profile.data?profile.data:{};
+    currentAccountId=(profile&&profile.dashboardId)||"";
+    accountCountry=(profile&&profile.country)||"NP";
+    profileData={name:"",username:"",photoURL:"",createdAt:null,country:accountCountry,...(profile&&profile.profile||{})};
+    const storedPlayers=(profile&&profile.players)||{};
+    playerDefinitions={p1:{id:"p1",name:"Player 1",photoURL:"",playerId:"",canManage:false},p2:{id:"p2",name:"Player 2",photoURL:"",playerId:"",canManage:false},p3:{id:"p3",name:"Player 3",photoURL:"",playerId:"",canManage:false},p4:{id:"p4",name:"Player 4",photoURL:"",playerId:"",canManage:false},p5:{id:"p5",name:"Player 5",photoURL:"",playerId:"",canManage:false},...storedPlayers};
+    playerNames={...defaultPlayerNames,...(data.names||{}),balance:"Balance"};
+    Object.keys(playerDefinitions).forEach(function(k){if(playerDefinitions[k]&&playerDefinitions[k].name)playerNames[k]=playerDefinitions[k].name;if(playerEliminationCounts[k]===undefined)playerEliminationCounts[k]="";});
+    paidTotals={...paidTotals,...(data.totals||{})};
+    matchHistory=Array.isArray(data.history)?data.history:[];
+    totalBalance=Number(data.balance)||0;
+    selectedPayer="p1";selectedEliminations=[];playerEliminationCounts={};
+    return true;
+  }
+
+  async function loadCurrentUser(user){
+    currentUser=user;
+    if(!user){currentAccountId=null;accounts={};resetAccountData();refreshAll();$("loginBtn").textContent="LOGIN";$("profileTopBtn").style.display="none";$("socialOverlay").classList.add("hidden");return;}
+    try{
+      const snap=await db.collection(STORAGE.users).doc(user.uid).get();
+      const profile=snap.exists?snap.data():{dashboardId:"",data:{}};
+      accounts[user.uid]=profile;loadAccountData(profile);await ensurePlayerIds();refreshAll();
+      $("loginBtn").textContent="LOG OUT";$("profileTopBtn").style.display="flex";renderProfileUI();
+      if(currentAccountId){await db.collection("dashboardIds").doc(currentAccountId).set({uid:user.uid,email:user.email||"",updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(function(e){console.warn("dashboardIds index not writable",e);});}
+    }catch(error){console.error(error);alert("Could not load your private dashboard data from Firebase.");await auth.signOut();}
+  }
+
+  function clearAuthFields(){["loginDashboardId","loginPass","createEmail","createPass","createCountry","createVerifyCode"].forEach(function(id){if($(id))$(id).value="";});}
+
+  function isOwner(){return !!(auth.currentUser && String(currentAccountId||"")===String(OWNER_DASHBOARD_ID));}
+  function randomVerificationCode(){
+    const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code="";
+    for(let i=0;i<8;i++){code+=chars[Math.floor(Math.random()*chars.length)];if(i===3)code+="-";}
+    return code;
+  }
+  async function renderVerificationManager(){
+    const list=$("verificationManagerList");
+    if(!list)return;
+    if(!isOwner()){list.innerHTML='<div class="empty">Owner access required. Sign in with the owner account (Dashboard ID 1234).</div>';return;}
+    try{
+      const snap=await db.collection(VERIFICATION_COLLECTION).limit(200).get();
+      if(snap.empty){list.innerHTML='<div class="empty">No verification codes created yet.</div>';return;}
+      const rows=[];
+      snap.forEach(function(doc){rows.push({id:doc.id,data:doc.data()||{}});});
+      rows.sort(function(a,b){
+        const aTime=a.data.createdAt&&a.data.createdAt.toMillis?a.data.createdAt.toMillis():0;
+        const bTime=b.data.createdAt&&b.data.createdAt.toMillis?b.data.createdAt.toMillis():0;
+        return bTime-aTime;
+      });
+      list.innerHTML="";
+      rows.forEach(function(row){
+        const d=row.data;
+        const status=d.used?"USED":(d.active===true?"LATEST / ACTIVE":"REPLACED");
+        const item=document.createElement("div");
+        item.className="verification-item"+(d.used?" used":(d.active===true?" active":" replaced"));
+        item.innerHTML='<div class="email">'+escapeHtml(d.email||"")+'</div><div class="code">'+escapeHtml(d.code||row.id)+'</div><div class="status">'+status+'</div>';
+        list.appendChild(item);
+      });
+    }catch(error){
+      console.error(error);
+      list.innerHTML='<div class="empty">Could not load verification codes. Check Firestore rules.</div>';
+    }
+  }
+function updateBalanceDisplay(){const el=$("totalBalance");if(totalBalance>0){el.textContent="+"+money(totalBalance);el.className="balance-value positive";}else if(totalBalance<0){el.textContent=money(totalBalance);el.className="balance-value negative";}else{el.textContent=money(0);el.className="balance-value";}}  function updateSummaryTotals(){    let revenue = 0;   let profit = 0;   let loss = 0;    matchHistory.forEach(     function(m){        revenue +=         Number(m.revenue) || 0;        if(m.profitLossType === "profit"){          profit +=           Number(             m.profitLossAmount           ) || 0;        }else if(         m.profitLossType === "loss"       ){          loss +=           Number(             m.profitLossAmount           ) || 0;        }      }   );    $("totalRevenue").textContent =     money(revenue);    $("totalProfit").textContent =     money(profit);    $("totalLoss").textContent =     money(loss);  }  function updateTeamStatistics(){    let rankSum = 0;   let totalWin = 0;   let totalGames = 0;   let totalPlacement = 0;   let totalElimination = 0;   let totalPoints = 0;    matchHistory.forEach(     function(m){        rankSum +=         Number(m.rank) || 0;        totalWin +=         Number(m.win) || 0;        totalGames +=         Number(m.totalGames) || 0;        totalPlacement +=         Number(m.placement) || 0;        totalElimination +=         Number(m.elimination) || 0;        totalPoints +=         Number(m.total) || 0;      }   );    const matchCount =     matchHistory.length;    const averageRank =     matchCount > 0       ? rankSum / matchCount       : 0;    const winRate =     totalGames > 0       ? (totalWin * 100) / totalGames       : 0;    const averagePlacement =     totalGames > 0       ? totalPlacement / totalGames       : 0;    const averageElimination =     totalGames > 0       ? totalElimination / totalGames       : 0;    const averageTotalPoints =     totalGames > 0       ? totalPoints / totalGames       : 0;    $("averageRank").textContent =     formatNumber(averageRank);    $("teamTotalWin").textContent =     formatNumber(totalWin);    $("teamTotalGames").textContent =     formatNumber(totalGames);    $("teamTotalPlacement").textContent =     formatNumber(totalPlacement);    $("teamTotalElimination").textContent =     formatNumber(totalElimination);    $("teamTotalPoints").textContent =     formatNumber(totalPoints);    $("teamWinRate").textContent =     formatNumber(winRate) + "%";    $("averagePlacement").textContent =     formatNumber(averagePlacement);    $("averageElimination").textContent =     formatNumber(averageElimination);    $("averageTotalPoints").textContent =     formatNumber(averageTotalPoints);  }  function calculateFinancial(){    const paid =     Number($("paidAmount").value) || 0;    const revenue =     Number($("revenueAmount").value) || 0;    const difference =     revenue - paid;    const amount =     Math.abs(difference);    const percentage =     paid > 0       ? (amount / paid) * 100       : 0;    let amountText =     money(amount);    let percentText =     formatNumber(percentage) + "%";    if(difference < 0){      amountText = "-"+money(amount);      percentText =       "-" +       formatNumber(percentage) +       "%";    }else if(difference > 0){      amountText = "+"+money(amount);      percentText =       "+" +       formatNumber(percentage) +       "%";    }    $("profitLossAmount").textContent =     amountText;    $("profitLossPercent").textContent =     percentText;    return {     paid:paid,     revenue:revenue,     difference:difference,     amount:amount,     percentage:percentage,     type:       difference > 0         ? "profit"         : difference < 0         ? "loss"         : "none"   };  }  function calculateTotalPoint(){    const placement =     Number($("placement").value) || 0;    const elimination =     Number($("elimination").value) || 0;    $("total").value =     placement + elimination;  }  function updateTeamInputLimits(){    const games =     Number($("totalGames").value) || 0;    const placementMax =     games * 12;    $("rank").min = "1";   $("rank").max = "12";    $("win").min = "0";   $("win").max = String(games);    $("placement").min = "0";   $("placement").max =     String(placementMax);    $("elimination").min = "0";    calculateTotalPoint();  }  function clearForm(){    [     "paidAmount",     "revenueAmount",     "rank",     "win",     "totalGames",     "placement",     "elimination"   ].forEach(     function(id){       $(id).value = "";     }   );    $("total").value = "";    $("profitLossAmount").textContent = money(0);    $("profitLossPercent").textContent =     "0.00%";    updateTeamInputLimits();  }  function renderEliminationPlayers(){    const box =     $("eliminationPlayers");    box.innerHTML = "";    Object.keys(playerDefinitions).forEach(     function(key){        const selected =         selectedEliminations.includes(key);        const row =         document.createElement("div");        row.className =         "elimination-option" +         (selected ? " selected" : "");        const playerLabel =         document.createElement("label");        playerLabel.style.display =         "flex";        playerLabel.style.alignItems =         "center";        playerLabel.style.gap =         "7px";        playerLabel.style.minWidth =         "0";        playerLabel.style.cursor =         "pointer";        const checkbox =         document.createElement("input");        checkbox.type =         "checkbox";        checkbox.checked =         selected;        checkbox.setAttribute(         "aria-label",         "Select " +         playerNames[key] +         " for elimination entry"       );        const name =         document.createElement("span");        name.textContent =         playerNames[key];        playerLabel.appendChild(         checkbox       );        playerLabel.appendChild(         name       );        const countInput =         document.createElement("input");        countInput.type =         "number";        countInput.min =         "0";        countInput.step =         "1";        countInput.placeholder =         "Elims";        countInput.value =         playerEliminationCounts[key];        countInput.disabled =         !selected;        countInput.setAttribute(         "aria-label",         playerNames[key] +         " elimination count"       );        checkbox.addEventListener(         "change",         function(){            if(checkbox.checked){              if(               selectedEliminations.length >= 4             ){                alert(                 "You can choose a maximum of 4 players."               );                renderEliminationPlayers();                return;             }              selectedEliminations.push(key);            }else{              selectedEliminations =               selectedEliminations.filter(                 function(item){                   return item !== key;                 }               );              playerEliminationCounts[key] =               "";            }            renderEliminationPlayers();          }       );        countInput.addEventListener(         "input",         function(){            let value =             Number(countInput.value);            if(             countInput.value !== "" &&             (!Number.isFinite(value) || value < 0)           ){              value = 0;              countInput.value = "0";            }            playerEliminationCounts[key] =             countInput.value;          }       );        row.appendChild(         playerLabel       );        row.appendChild(         countInput       );        box.appendChild(         row       );      }   );  }  function renderPayers(){    const box =     $("payerButtons");    box.innerHTML = "";    Object.keys(playerNames).forEach(     function(key){        const button =         document.createElement("button");        button.type =         "button";        button.className =         "payer-btn" +         (           selectedPayer === key             ? " active"             : ""         );        button.textContent =         playerNames[key];        button.addEventListener(         "click",         function(){            selectedPayer =             key;            renderPayers();          }       );        box.appendChild(         button       );      }   );  }  function renderPlayerPerformance(){    const box =     $("playerPerformanceList");    if(!matchHistory.length){      box.innerHTML =       '<div class="empty">No match data yet.</div>';      return;   }    box.innerHTML =     '<p class="player-performance-note">' +     'Games count the Team Performance Total Games for every match where the player was selected in Player Elimination.' +     '</p>' +      Object.keys(playerDefinitions).map(       function(key){          let totalEliminations = 0;          let totalGames = 0;          matchHistory.forEach(           function(match){              const chosen =               Array.isArray(                 match.eliminatedPlayers               ) &&               match.eliminatedPlayers.includes(                 key               );              if(chosen){                totalGames +=                 Number(                   match.totalGames                 ) || 0;                const counts =                 match.playerEliminationCounts ||                 {};                totalEliminations +=                 Math.max(                   0,                   Number(counts[key]) || 0                 );              }            }         );          const average =           totalGames             ? totalEliminations / totalGames             : 0;          return (            '<div class="player-performance-card">' +              '<div class="player-performance-name">' +               escapeHtml(                 playerNames[key]               ) +             '</div>' +              '<div class="player-performance-values">' +                '<div>' +                 '<small>Total Eliminations</small>' +                 '<strong>' +                   formatNumber(                     totalEliminations                   ) +                 '</strong>' +               '</div>' +                '<div>' +                 '<small>Total Games</small>' +                 '<strong>' +                   formatNumber(                     totalGames                   ) +                 '</strong>' +               '</div>' +                '<div>' +                 '<small>Average Eliminations</small>' +                 '<strong>' +                   formatNumber(                     average                   ) +                 '</strong>' +               '</div>' +              '</div>' +            '</div>'          );        }     ).join("");  }  function renderPaidTotals(){    const box =     $("paidTotalsList");    box.innerHTML = "";    Object.keys(playerNames).forEach(     function(key){        const row =         document.createElement("div");        row.className =         "paid-row";        row.innerHTML =         "<span>" +           escapeHtml(             playerNames[key]           ) +         "</span>" +          "<strong>" +           money(             paidTotals[key]           ) +         "</strong>";        box.appendChild(row);      }   );  }  function matchHtml(m){    const payer =     playerNames[m.payer] ||     m.payer;    let label =     "Profit/Loss";    let sign = "";    if(m.profitLossType === "profit"){      label =       "Profit";      sign =       "+";    }else if(m.profitLossType === "loss"){      label =       "Loss";      sign =       "-";    }    let financialAmount;    if(m.profitLossType === "profit"){      financialAmount = "+"+money(m.profitLossAmount);    }else if(m.profitLossType === "loss"){      financialAmount = "-"+money(m.profitLossAmount);    }else{      financialAmount = money(m.profitLossAmount);    }    return `      <div class="match">        <div class="match-title">         MATCH ${Number(m.matchNumber)}       </div>        <div class="match-line">          <span>           <b>Paid:</b>           ${money(m.paid)}         </span>          <span>           <b>Revenue:</b>           ${money(m.revenue)}         </span>          <span>           <b>${label}:</b>           ${financialAmount}         </span>          <span>           <b>${label} %:</b>           ${sign}${formatNumber(m.profitLossPercent)}%         </span>          <span>           <b>Paid By:</b>           ${escapeHtml(payer)}         </span>        </div>        <div class="match-team">          <div class="match-line">            <span>             <b>Total Games:</b>             ${Number(m.totalGames) || 0}           </span>            <span>             <b>Rank:</b>             ${Number(m.rank) || 0}           </span>            <span>             <b>Win:</b>             ${Number(m.win) || 0}           </span>            <span>             <b>Placement Point:</b>             ${formatNumber(m.placement)}           </span>            <span>             <b>Elimination Point:</b>             ${formatNumber(m.elimination)}           </span>            <span>             <b>Total Point:</b>             ${formatNumber(m.total)}           </span>          </div>          <div           class="match-line"           style="margin-top:8px"         >            <span>              <b>Eliminated Players:</b>              ${               Array.isArray(                 m.eliminatedPlayers               ) &&               m.eliminatedPlayers.length                ? m.eliminatedPlayers.map(                   function(key){                     return escapeHtml(                       playerNames[key] ||                       key                     );                   }                 ).join(", ")                : "None selected"             }            </span>          </div>        </div>      </div>    `;  }  function renderHomeHistory(){    const box =     $("historyList");    const latest =     matchHistory       .slice()       .reverse()       .slice(0,2);    if(latest.length === 0){      box.innerHTML =       '<div class="empty">No matches submitted yet.</div>';      return;   }    box.innerHTML =     latest       .map(matchHtml)       .join("");  }  function renderMenuHistory(){    const box =     $("menuHistoryList");    const searchValue =     $("menuHistorySearch")       .value       .trim();    if(searchValue === ""){      const latest =       matchHistory         .slice()         .reverse()         .slice(0,2);      if(latest.length === 0){        box.innerHTML =         '<div class="empty">No matches submitted yet.</div>';      }else{        box.innerHTML =         latest           .map(matchHtml)           .join("");      }      return;   }    const number =     Number(searchValue);    const found =     matchHistory.filter(       function(m){         return (           Number(m.matchNumber) ===           number         );       }     );    if(found.length === 0){      box.innerHTML =       '<div class="empty">Match ' +       escapeHtml(searchValue) +       ' not found.</div>';    }else{      box.innerHTML =       found         .map(matchHtml)         .join("");    }  }  function renderNames(){    $("nameP1").value =     playerNames.p1;    $("nameP2").value =     playerNames.p2;    $("nameP3").value =     playerNames.p3;    $("nameP4").value =     playerNames.p4;    $("nameP5").value =     playerNames.p5;  }  function refreshAll(){renderNames();renderPayers();renderEliminationPlayers();renderPaidTotals();renderPlayerPerformance();renderHomeHistory();renderMenuHistory();updateSummaryTotals();updateTeamStatistics();updateBalanceDisplay();calculateFinancial();updateTeamInputLimits();if(typeof renderProfileUI==="function")renderProfileUI();}
+  function hideAuth(){$("authOverlay").classList.add("hidden");$("authError").textContent="";}
+  $("authClose").addEventListener("click",hideAuth);
+  $("authOverlay").addEventListener("click",function(e){if(e.target===this)hideAuth();});
+  function switchAuthTab(mode){const login=mode==="login";$("loginTab").classList.toggle("active",login);$("createTab").classList.toggle("active",!login);$("loginForm").classList.toggle("active",login);$("createForm").classList.toggle("active",!login);$("authTitle").textContent=login?"Login":"Create Account";$("authError").textContent="";}
+  function showAuth(){$("authOverlay").classList.remove("hidden");switchAuthTab("login");setTimeout(function(){$("loginDashboardId").focus();},0);}
+  $("loginTab").addEventListener("click",()=>switchAuthTab("login"));
+  $("createTab").addEventListener("click",()=>switchAuthTab("create"));
+
+  $("loginForm").addEventListener("submit",async function(e){
+    e.preventDefault();const dashboardId=$("loginDashboardId").value.trim();const pass=$("loginPass").value;$("authError").textContent="";
+    const ownerLogin = dashboardId === OWNER_DASHBOARD_ID;
+    if((!/^\d{10}$/.test(dashboardId) && !ownerLogin)||!pass){$("authError").textContent=ownerLogin?"Enter your owner password.":"Enter the 10-digit Dashboard ID and password.";return;}
+    try{
+      const idx=await db.collection("dashboardIds").doc(dashboardId).get();
+      if(!idx.exists){
+        if(dashboardId===OWNER_DASHBOARD_ID){
+          $("authError").textContent="Owner ID is not linked yet. Sign in once with Google, then the owner ID will be linked automatically.";
+        }else{
+          $("authError").textContent="Dashboard ID not found.";
+        }
+        return;
+      }
+      const d=idx.data()||{};
+      if(!d.email){$("authError").textContent="This Dashboard ID is not linked correctly.";return;}
+      await auth.signInWithEmailAndPassword(d.email,pass);
+      hideAuth();clearAuthFields();await showPlayerLogin();
+    }catch(error){
+      console.error(error);
+      $("authError").textContent=error.code==="auth/invalid-credential"?"Incorrect Dashboard ID or password.":(error.code==="permission-denied"?"Firebase denied access to Dashboard IDs. Check Firestore rules.":(error.message||"Login failed."));
+    }
+  });
+
+  $("googleLoginBtn").addEventListener("click",async function(){
+    $("authError").textContent="";
+    try{
+      const provider=new firebase.auth.GoogleAuthProvider();
+      await auth.signInWithPopup(provider);
+      hideAuth();clearAuthFields();await showPlayerLogin();
+    }catch(error){
+      console.error(error);
+      $("authError").textContent=error.message||"Google login failed.";
+    }
+  });
+
+  let pendingCreateData = null;
+
+  $("createForm").addEventListener("submit",function(e){
+    e.preventDefault();const email=$("createEmail").value.trim().toLowerCase();const pass=$("createPass").value;const country=$("createCountry").value;$("authError").textContent="";
+    if(!email||!pass){$("authError").textContent="Fill in your email and password first.";return;}if(pass.length<6){$("authError").textContent="Firebase passwords must be at least 6 characters.";return;}
+    pendingCreateData={email:email,pass:pass,country:country};$("verificationCodeInput").value="";$("verificationError").textContent="";$("verificationOverlay").classList.remove("hidden");setTimeout(function(){$("verificationCodeInput").focus();},50);
+  });
+
+  function closeVerification(){
+    $("verificationOverlay").classList.add("hidden");
+    $("verificationError").textContent="";
+    pendingCreateData=null;
+  }
+
+  $("verificationClose").addEventListener("click",closeVerification);
+  $("verificationOverlay").addEventListener("click",function(e){if(e.target===this)closeVerification();});
+
+  const PRIORITY_IDS=["0000000000","1111111111","2222222222","3333333333","4444444444","5555555555","6666666666","7777777777","8888888888","9999999999","9876543210","0000000001","0123456789"];
+  async function allocateDashboardId(uid,email){
+    const counterRef=db.collection("system").doc("dashboardIdCounter");
+    let assigned="";
+    await db.runTransaction(async function(tx){
+      const counterSnap=await tx.get(counterRef);const counter=counterSnap.exists?(counterSnap.data()||{}):{};let index=Number(counter.nextIndex)||2;
+      const used=Array.isArray(counter.usedPriority)?counter.usedPriority:[];
+      for(const id of PRIORITY_IDS){if(!used.includes(id)){const ref=db.collection("dashboardIds").doc(id);const snap=await tx.get(ref);if(!snap.exists){assigned=id;tx.set(ref,{uid:uid,email:email,assignedAt:firebase.firestore.FieldValue.serverTimestamp(),special:true});tx.set(counterRef,{nextIndex:index,usedPriority:used.concat(id)},{merge:true});return;}}}
+      while(index<=9999999999){const id=String(index).padStart(10,"0");if(PRIORITY_IDS.includes(id)){index++;continue;}const ref=db.collection("dashboardIds").doc(id);const snap=await tx.get(ref);if(!snap.exists){assigned=id;tx.set(ref,{uid:uid,email:email,assignedAt:firebase.firestore.FieldValue.serverTimestamp(),special:false});tx.set(counterRef,{nextIndex:index+1,usedPriority:used},{merge:true});return;}index++;}
+      throw new Error("NO_DASHBOARD_IDS_AVAILABLE");
+    });
+    if(!assigned)throw new Error("NO_DASHBOARD_IDS_AVAILABLE");return assigned;
+  }
+
+  const PLAYER_PRIORITY_IDS=["0000000000","1111111111","2222222222","3333333333","4444444444","5555555555","6666666666","7777777777","8888888888","9999999999","9876543210","0000000001","0123456789"];
+  async function allocatePlayerId(uid,playerKey){
+    const counterRef=db.collection("system").doc("playerIdCounter");
+    let assigned="";
+    await db.runTransaction(async function(tx){
+      const counterSnap=await tx.get(counterRef);
+      const counter=counterSnap.exists?(counterSnap.data()||{}):{};
+      let index=Number(counter.nextIndex)||2;
+      const used=Array.isArray(counter.usedPriority)?counter.usedPriority:[];
+      for(const id of PLAYER_PRIORITY_IDS){
+        if(used.includes(id))continue;
+        const ref=db.collection("playerIds").doc(id);
+        const snap=await tx.get(ref);
+        if(!snap.exists){
+          assigned=id;
+          tx.set(ref,{dashboardUid:uid,playerKey:playerKey,assignedAt:firebase.firestore.FieldValue.serverTimestamp(),special:true});
+          tx.set(counterRef,{nextIndex:index,usedPriority:used.concat(id)},{merge:true});
+          return;
+        }
+      }
+      while(index<=9999999999){
+        const id=String(index).padStart(10,"0");
+        if(PLAYER_PRIORITY_IDS.includes(id)){index++;continue;}
+        const ref=db.collection("playerIds").doc(id);
+        const snap=await tx.get(ref);
+        if(!snap.exists){
+          assigned=id;
+          tx.set(ref,{dashboardUid:uid,playerKey:playerKey,assignedAt:firebase.firestore.FieldValue.serverTimestamp(),special:false});
+          tx.set(counterRef,{nextIndex:index+1,usedPriority:used},{merge:true});
+          return;
+        }
+        index++;
+      }
+      throw new Error("NO_PLAYER_IDS_AVAILABLE");
+    });
+    if(!assigned)throw new Error("NO_PLAYER_IDS_AVAILABLE");
+    return assigned;
+  }
+
+  async function ensurePlayerIds(){
+    if(!auth.currentUser)return;
+    let changed=false;
+    const uid=auth.currentUser.uid;
+    for(const key of Object.keys(playerDefinitions)){
+      const player=playerDefinitions[key]||{};
+      if(player.playerId)continue;
+      const playerId=await allocatePlayerId(uid,key);
+      playerDefinitions[key]={...player,id:key,playerId:playerId};
+      changed=true;
+    }
+    if(changed)await saveData();
+  }
+
+  $("verifyCreateBtn").addEventListener("click",async function(){
+    const code=$("verificationCodeInput").value.trim().toUpperCase();
+    $("verificationError").textContent="";
+    if(!pendingCreateData){closeVerification();return;}
+    if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){$("verificationError").textContent="Enter the 9-character verification code in XXXX-XXXX format.";return;}
+    const email=pendingCreateData.email;
+    const pass=pendingCreateData.pass;
+    const country=pendingCreateData.country;
+    const button=$("verifyCreateBtn");
+    button.disabled=true;
+    button.textContent="CHECKING CODE...";
+    let cred=null;
+    try{
+      const codeRef=db.collection(VERIFICATION_COLLECTION).doc(code);
+      const codeSnap=await codeRef.get();
+      if(!codeSnap.exists){$("verificationError").textContent="Invalid verification code.";return;}
+      const codeData=codeSnap.data()||{};
+      if(String(codeData.email||"").trim().toLowerCase()!==email){$("verificationError").textContent="This verification code is not assigned to this email.";return;}
+      if(codeData.used){$("verificationError").textContent="This verification code has already been used.";return;}
+      if(codeData.active!==true){$("verificationError").textContent="This verification code has been replaced. Ask the owner for the latest code.";return;}
+      button.textContent="CREATING ACCOUNT...";
+      cred=await auth.createUserWithEmailAndPassword(email,pass);
+      const uid=cred.user.uid;
+      const dashboardId=await allocateDashboardId(uid,email);
+      const profile={dashboardId:dashboardId,email:email,country:country,profile:{name:"",username:"",photoURL:"",bio:"",country:country,createdAt:firebase.firestore.FieldValue.serverTimestamp()},players:playerDefinitions,data:{names:{...defaultPlayerNames},totals:{p1:0,p2:0,p3:0,p4:0,p5:0,balance:0},history:[],balance:0}};
+      await db.collection(STORAGE.users).doc(uid).set(profile);
+      const claimResult=await db.runTransaction(async function(transaction){
+        const fresh=await transaction.get(codeRef);
+        const freshData=fresh.data()||{};
+        if(!fresh.exists||freshData.used||freshData.active!==true||String(freshData.email||"").trim().toLowerCase()!==email)throw new Error("VERIFICATION_CODE_CLAIM_FAILED");
+        transaction.update(codeRef,{used:true,active:false,usedBy:uid,usedAt:firebase.firestore.FieldValue.serverTimestamp()});
+        return true;
+      });
+      if(!claimResult)throw new Error("VERIFICATION_CODE_CLAIM_FAILED");
+      pendingCreateData=null;
+      $("verificationOverlay").classList.add("hidden");
+      hideAuth();
+      clearAuthFields();
+      alert("Account created successfully. Your verification code is now used and cannot be reused.");
+    }catch(error){
+      console.error(error);
+      if(cred&&auth.currentUser&&auth.currentUser.uid===cred.user.uid){
+        try{await cred.user.delete();}catch(deleteError){console.error(deleteError);}
+      }
+      $("verificationError").textContent=error.message==="VERIFICATION_CODE_CLAIM_FAILED"?"This verification code was already used or is no longer valid.":(error.code==="auth/email-already-in-use"?"This email already has a Firebase account.":(error.message||"Account could not be created."));
+    }finally{
+      button.disabled=false;
+      button.textContent="VERIFY & CREATE ACCOUNT";
+    }
+  });
+
+  $("verificationCodeInput").addEventListener("keydown",function(e){
+    if(e.key==="Enter") $("verifyCreateBtn").click();
+  });
+
+  $("verificationManagerBtn").addEventListener("click",async function(){
+    if(!isOwner()){alert("Owner access required.");return;}
+    document.querySelectorAll(".menu-content").forEach(function(section){section.classList.remove("active");});
+    $("verificationManagerSection").classList.add("active");
+    await renderVerificationManager();
+  });
+
+  function getNepalDateKey(){
+    return new Date(Date.now()+345*60*1000).toISOString().slice(0,10);
+  }
+  function verificationMetaId(email){
+    return encodeURIComponent(email);
+  }
+
+  $("generateVerificationBtn").addEventListener("click",async function(){
+    $("verificationManagerError").textContent="";
+    if(!isOwner()){ $("verificationManagerError").textContent="Owner access required."; return; }
+    const email=$("verificationManagerEmail").value.trim().toLowerCase();
+    if(!email||!email.includes("@")){ $("verificationManagerError").textContent="Enter the customer's email."; return; }
+
+    const today=getNepalDateKey();
+    let code=randomVerificationCode();
+    let generatedToday=0;
+    try{
+      const metaRef=db.collection("verificationEmailLimits").doc(verificationMetaId(email));
+      const newRef=db.collection(VERIFICATION_COLLECTION).doc(code);
+
+      await db.runTransaction(async function(transaction){
+        const metaSnap=await transaction.get(metaRef);
+        let meta=metaSnap.exists?(metaSnap.data()||{}):{};
+        let count=Number(meta.dailyCount)||0;
+        if(meta.date!==today) count=0;
+        if(count>=10) throw new Error("DAILY_CODE_LIMIT");
+        generatedToday=count+1;
+
+        let previousRef=null;
+        if(meta.latestCode){
+          previousRef=db.collection(VERIFICATION_COLLECTION).doc(String(meta.latestCode));
+          const previousSnap=await transaction.get(previousRef);
+          if(previousSnap.exists){
+            transaction.update(previousRef,{active:false,replacedAt:firebase.firestore.FieldValue.serverTimestamp()});
+          }
+        }
+
+        transaction.set(newRef,{
+          email:email,
+          code:code,
+          used:false,
+          active:true,
+          usedBy:"",
+          createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+          createdBy:auth.currentUser.uid,
+          date:today
+        });
+
+        transaction.set(metaRef,{
+          email:email,
+          date:today,
+          dailyCount:count+1,
+          latestCode:code,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        },{merge:true});
+      });
+
+      $("verificationManagerEmail").value="";
+      await renderVerificationManager();
+      alert("Latest verification code for " + email + ":\n\n" + code + "\n\nToday's usage: " + generatedToday + " / 10\n\nOnly this latest code works for this email. Older codes are no longer valid.");
+    }catch(error){
+      console.error(error);
+      if(error.message==="DAILY_CODE_LIMIT"){
+        $("verificationManagerError").textContent="This email has already reached the 10-code limit for today. The limit resets tomorrow.";
+      }else if(error.code==="permission-denied"){
+        $("verificationManagerError").textContent="Firebase denied the verification-code write. Update your Firestore Rules so the owner (Dashboard ID 1234) can read/write verificationCodes and verificationEmailLimits.";
+      }else if(error.code==="failed-precondition"){
+        $("verificationManagerError").textContent="Firebase rejected the request because a required Firestore setup/index is missing. Check the browser console for the exact Firebase message.";
+      }else{
+        $("verificationManagerError").textContent=error.message||"Could not create verification code.";
+      }
+    }
+  });
+
+  $("loginBtn").addEventListener("click",async function(){
+    if(auth.currentUser){
+      await auth.signOut();
+    }else{
+      showAuth();
+    }
+  });
+
+
+  const conversationCache={};
+  async function showPlayerLogin(){
+    if(!auth.currentUser)return;
+    activePlayer=null;
+    playerAuthUser=null;
+    $("playerAuthArea").classList.add("hidden");
+    $("playerAuthError").textContent="";
+    const list=$("playerChoiceList");
+    list.innerHTML='<div class="empty">Checking player sessions...</div>';
+    $("playerLoginOverlay").classList.remove("hidden");
+    const html=[];
+    for(const id of Object.keys(playerDefinitions)){
+      const p=playerDefinitions[id]||{};
+      let busy=false;
+      try{
+        const sessionSnap=await db.collection("playerSessions").doc(auth.currentUser.uid+"_"+id).get();
+        const d=sessionSnap.exists?sessionSnap.data()||{}:{};
+        busy=!!(d.expiresAt&&d.expiresAt.toMillis&&d.expiresAt.toMillis()>Date.now());
+      }catch(e){console.warn("Player session check failed",e);}
+      const photo=p.photoURL?'<img src="'+escapeHtml(p.photoURL)+'" alt="">':'◉';
+      html.push('<div class="player-choice"><button type="button" data-player-choice="'+escapeHtml(id)+'" '+(busy?'disabled':'')+'><span class="choice-photo">'+photo+'</span><strong>'+escapeHtml(p.name||id)+'</strong><span class="choice-id">ID '+escapeHtml(p.playerId||"ASSIGNING...")+'</span><small>'+(busy?'Active on this device/session':'Available')+'</small></button></div>');
+    }
+    list.innerHTML=html.join("")||'<div class="empty">No players available.</div>';
+    list.querySelectorAll("button[data-player-choice]").forEach(function(btn){
+      btn.addEventListener("click",function(){
+        const id=btn.dataset.playerChoice;
+        const p=playerDefinitions[id]||{};
+        $("playerAuthArea").dataset.playerId=id;
+        $("playerEmailInput").value="";
+        $("playerPassInput").value="";
+        $("playerAuthError").textContent="";
+        const hasAccount=!!p.playerUid;
+        $("playerAuthTitle").textContent=hasAccount?"Player Login":"Create Player Account";
+        $("playerAuthBtn").textContent=hasAccount?"LOGIN PLAYER":"CREATE PLAYER ACCOUNT";
+        $("playerAuthArea").dataset.mode=hasAccount?"login":"create";
+        $("playerAuthArea").classList.remove("hidden");
+        $("playerEmailInput").focus();
+      });
+    });
+  }
+  $("playerAuthBtn").addEventListener("click",async function(){
+    const area=$("playerAuthArea");
+    const id=area.dataset.playerId;
+    const mode=area.dataset.mode||"login";
+    const email=$("playerEmailInput").value.trim().toLowerCase();
+    const pass=$("playerPassInput").value;
+    $("playerAuthError").textContent="";
+    if(!id||!email||!pass){$("playerAuthError").textContent="Enter player email and password.";return;}
+    if(pass.length<6){$("playerAuthError").textContent="Player password must be at least 6 characters.";return;}
+    try{
+      const p=playerDefinitions[id];
+      let user;
+      if(mode==="create"){
+        if(p.playerUid){$("playerAuthError").textContent="This player already has an account. Use LOGIN PLAYER.";return;}
+        const cred=await playerAuth.createUserWithEmailAndPassword(email,pass);
+        user=cred.user;
+        const playerId=p.playerId||await allocatePlayerId(auth.currentUser.uid,id);
+        playerDefinitions[id]={...p,playerId:playerId,playerUid:user.uid,email:email};
+        await db.collection("users").doc(auth.currentUser.uid).collection("players").doc(id).set({id:id,playerId:playerId,name:p.name,photoURL:p.photoURL||"",email:email,playerUid:user.uid,createdAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        await saveData();
+      }else{
+        if(!p.playerUid){$("playerAuthError").textContent="This player has no account yet. Use CREATE PLAYER ACCOUNT.";return;}
+        const cred=await playerAuth.signInWithEmailAndPassword(email,pass);
+        user=cred.user;
+        if(user.uid!==p.playerUid){$("playerAuthError").textContent="This email does not belong to this player.";await playerAuth.signOut();return;}
+      }
+      const sessionRef=db.collection("playerSessions").doc(auth.currentUser.uid+"_"+id);
+      await db.runTransaction(async function(tx){
+        const s=await tx.get(sessionRef);
+        if(s.exists&&s.data().expiresAt&&s.data().expiresAt.toMillis()>Date.now()&&s.data().playerUid!==user.uid)throw new Error("PLAYER_BUSY");
+        tx.set(sessionRef,{dashboardUid:auth.currentUser.uid,playerId:id,playerUid:user.uid,expiresAt:new Date(Date.now()+2*60*60*1000),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      });
+      playerAuthUser=user;
+      activePlayer={id:id,name:p.name,uid:user.uid,email:email,playerId:p.playerId||""};
+      $("playerLoginOverlay").classList.add("hidden");
+      $("chatIdentity").textContent=(profileData.name||"Account")+" — "+activePlayer.name+" · Player ID "+(activePlayer.playerId||"—");
+      await loadConversations();
+      openSocialTab("chat");
+      $("socialOverlay").classList.remove("hidden");
+    }catch(e){
+      console.error(e);
+      $("playerAuthError").textContent=e.message==="PLAYER_BUSY"?"This player is already active on another device.":(e.code==="auth/email-already-in-use"?"This email already has a player account. Use LOGIN PLAYER.":(e.message||"Player login failed."));
+    }
+  });
+
+  function renderProfileUI(){
+    if(!auth.currentUser)return;
+    const p=profileData||{};
+    $("profileTopName").textContent=p.name||p.username||"Profile";
+    $("profileDisplayName").textContent=p.name||"Unnamed Profile";
+    $("profileMeta").textContent=p.username?"@"+p.username:"Set your username";
+    $("profileBioDisplay").textContent=p.bio||"No bio yet.";
+    $("profilePlayerCount").textContent=String(Object.keys(playerDefinitions).length);
+    $("profileMatchCount").textContent=String(matchHistory.length);
+    $("profileNameInput").value=p.name||"";
+    $("profileUsernameInput").value=p.username||"";
+    $("profileBioInput").value=p.bio||"";
+    $("profilePhotoInput").value=p.photoURL||"";
+    $("profileCountry").value=p.country||accountCountry||"NP";
+    $("profileAvatarTop").innerHTML=p.photoURL?'<img src="'+escapeHtml(p.photoURL)+'" alt="">':'◉';
+    $("profileAvatarBig").innerHTML=p.photoURL?'<img src="'+escapeHtml(p.photoURL)+'" alt="">':'◉';
+    $("profileInfo").innerHTML='<b>Country:</b> '+escapeHtml(currencyInfo(p.country||accountCountry).code)+'<br><b>Account created:</b> '+(p.createdAt&&p.createdAt.toDate?p.createdAt.toDate().toLocaleDateString():"Existing account");
+  }
+  async function saveProfile(){
+    if(!auth.currentUser){alert("Log in first.");return;}
+    const name=$("profileNameInput").value.trim();
+    const username=$("profileUsernameInput").value.trim().toLowerCase().replace(/[^a-z0-9_\.]/g,"");
+    const bio=$("profileBioInput").value.trim();
+    const photo=$("profilePhotoInput").value.trim();
+    const country=$("profileCountry").value;
+    if(!name){alert("Enter your profile name.");return;}
+    if(!/^[a-z0-9_\.]{3,24}$/.test(username)){alert("Username must be 3-24 characters using letters, numbers, underscore or dot.");return;}
+    const ref=db.collection("usernames").doc(username);
+    try{
+      await db.runTransaction(async function(tx){
+        const snap=await tx.get(ref);
+        if(snap.exists&&snap.data().uid!==auth.currentUser.uid)throw new Error("USERNAME_TAKEN");
+        if(profileData.username&&profileData.username!==username){tx.delete(db.collection("usernames").doc(profileData.username));}
+        tx.set(ref,{uid:auth.currentUser.uid,username:username,name:name,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+      });
+      profileData={...profileData,name:name,username:username,bio:bio,photoURL:photo,country:country};
+      accountCountry=country;
+      await db.collection("users").doc(auth.currentUser.uid).set({profile:profileData,country:country},{merge:true});
+      await db.collection("publicProfiles").doc(auth.currentUser.uid).set({uid:auth.currentUser.uid,name:name,username:username,bio:bio,photoURL:photo,country:country,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      $("profileEditPanel").classList.add("hidden");
+      renderProfileUI();refreshAll();alert("Profile saved.");
+    }catch(e){console.error(e);alert(e.message==="USERNAME_TAKEN"?"That username is already used by another customer.":(e.message||"Could not save profile."));}
+  }
+  async function searchUsers(){
+    const q=$("userSearchInput").value.trim().toLowerCase();
+    const box=$("userSearchResults");
+    if(!q){box.innerHTML='<div class="empty">Enter a name, username or 10-digit ID.</div>';return;}
+    if(!auth.currentUser){box.innerHTML='<div class="empty">Log in first.</div>';return;}
+    box.innerHTML='<div class="empty">Searching...</div>';
+    try{
+      const results=[];
+      const seen={};
+      const snap=await db.collection("publicProfiles").limit(200).get();
+      snap.forEach(function(doc){const d=doc.data()||{};const hay=[d.name,d.username].map(function(v){return String(v||"").toLowerCase();}).join(" ");if((hay.includes(q))&&d.uid!==auth.currentUser.uid&&!seen[d.uid]){seen[d.uid]=true;results.push(d);}});
+      if(/^\d{1,10}$/.test(q)){
+        const padded=q.padStart(10,"0");
+        const idx=await db.collection("dashboardIds").doc(padded).get();
+        if(idx.exists){const uid=(idx.data()||{}).uid;if(uid&&uid!==auth.currentUser.uid&&!seen[uid]){const prof=await db.collection("publicProfiles").doc(uid).get();if(prof.exists){const d=prof.data()||{};results.push({...d,dashboardId:padded});seen[uid]=true;}}}
+      }
+      if(!results.length){box.innerHTML='<div class="empty">No registered user found.</div>';return;}
+      box.innerHTML=results.slice(0,30).map(function(d){return '<div class="search-result"><div><strong>'+escapeHtml(d.name||"Unnamed")+'</strong><small>@'+escapeHtml(d.username||"—")+(d.dashboardId?' · ID '+escapeHtml(d.dashboardId):'')+'</small></div><button data-chatuid="'+escapeHtml(d.uid)+'" data-chatname="'+escapeHtml(d.name||d.username||"User")+'">CHAT</button></div>';}).join("");
+      box.querySelectorAll("button[data-chatuid]").forEach(function(btn){btn.addEventListener("click",function(){openPrivateChat(btn.dataset.chatuid,btn.dataset.chatname);});});
+    }catch(e){console.error(e);box.innerHTML='<div class="empty">Search failed. Check Firebase access.</div>';}
+  }
+  async function ensureConversation(otherUid,otherName){if(!activePlayer){alert("Choose a player first.");return;}const ids=[auth.currentUser.uid,otherUid].sort();const cid=ids.join("_");const ref=db.collection("conversations").doc(cid);await ref.set({participants:ids,type:"private",updatedAt:firebase.firestore.FieldValue.serverTimestamp(),members:{[auth.currentUser.uid]:profileData.name||"Account",[otherUid]:otherName||"Account"}},{merge:true});activeConversation={id:cid,otherUid:otherUid,otherName:otherName};await loadMessages();await loadConversations();}
+  async function openPrivateChat(uid,name){await ensureConversation(uid,name);openSocialTab("chat");$("chatTabBtn").click();}
+  async function ensureGroupConversation(){if(!auth.currentUser)return null;const id="group_"+auth.currentUser.uid;const ref=db.collection("conversations").doc(id);await ref.set({type:"group",dashboardUid:auth.currentUser.uid,name:(profileData.name||"Team")+" Group",participants:[auth.currentUser.uid],updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});return{id:id,type:"group",otherName:(profileData.name||"Team")+" Group"};}
+  async function loadConversations(){if(!auth.currentUser)return;const box=$("chatList");box.innerHTML="";try{const group=await ensureGroupConversation();const gi=document.createElement("div");gi.className="conversation-item"+(activeConversation&&activeConversation.id===group.id?" active":"");gi.textContent="TEAM GROUP";gi.addEventListener("click",async function(){activeConversation=group;await loadMessages();await loadConversations();});box.appendChild(gi);const snap=await db.collection("conversations").where("participants","array-contains",auth.currentUser.uid).orderBy("updatedAt","desc").limit(30).get();snap.forEach(function(doc){const d=doc.data()||{};if(d.type==="group")return;const other=(d.participants||[]).find(function(x){return x!==auth.currentUser.uid;});const name=(d.members||{})[other]||"User";const item=document.createElement("div");item.className="conversation-item"+(activeConversation&&activeConversation.id===doc.id?" active":"");item.textContent=name;item.addEventListener("click",async function(){activeConversation={id:doc.id,otherUid:other,otherName:name,type:"private"};await loadMessages();await loadConversations();});box.appendChild(item);});}catch(e){console.error(e);box.innerHTML='<div class="empty">Could not load chats. Check the Firestore index/rules.</div>';}}
+  async function loadMessages(){if(!activeConversation||!auth.currentUser)return;$("chatHeader").textContent=activeConversation.otherName||"Chat";if(conversationUnsub)conversationUnsub();conversationUnsub=db.collection("conversations").doc(activeConversation.id).collection("messages").orderBy("createdAt","asc").limitToLast(200).onSnapshot(function(snap){const box=$("chatMessages");box.innerHTML="";snap.forEach(function(doc){const d=doc.data()||{};const mine=d.dashboardUid===auth.currentUser.uid;const div=document.createElement("div");div.className="chat-message"+(mine?" mine":"");div.innerHTML='<b>'+escapeHtml((d.accountName||"Account")+' — '+(d.playerName||"Player"))+'</b><div>'+escapeHtml(d.text||"")+'</div><small>'+ (d.createdAt&&d.createdAt.toDate?d.createdAt.toDate().toLocaleString():"")+'</small>';box.appendChild(div);});box.scrollTop=box.scrollHeight;});}
+  $("sendChatBtn").addEventListener("click",sendChat);$("chatInput").addEventListener("keydown",function(e){if(e.key==="Enter")sendChat();});async function sendChat(){const text=$("chatInput").value.trim();if(!text||!activeConversation||!activePlayer||!auth.currentUser)return;$("chatInput").value="";await db.collection("conversations").doc(activeConversation.id).collection("messages").add({text:text,dashboardUid:auth.currentUser.uid,playerUid:activePlayer.uid,playerId:activePlayer.id,playerNumberId:activePlayer.playerId||"",playerName:activePlayer.name,accountName:profileData.name||"Account",createdAt:firebase.firestore.FieldValue.serverTimestamp()});await db.collection("conversations").doc(activeConversation.id).set({updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});}
+  function openSocialTab(name){const map={profile:["profileTabBtn","profilePanel"],search:["searchTabBtn","searchPanel"],chat:["chatTabBtn","chatPanel"]};Object.keys(map).forEach(function(k){$(map[k][0]).classList.toggle("active",k===name);$(map[k][1]).classList.toggle("active",k===name);});if(name==="profile")renderProfileUI();if(name==="chat"){loadConversations();if(activeConversation)loadMessages();}}
+  $("profileTopBtn").addEventListener("click",function(){if(!auth.currentUser)return;renderProfileUI();$("socialOverlay").classList.remove("hidden");openSocialTab("profile");});$("socialClose").addEventListener("click",function(){if(conversationUnsub)conversationUnsub();$("socialOverlay").classList.add("hidden");});$("profileTabBtn").addEventListener("click",function(){openSocialTab("profile")});$("searchTabBtn").addEventListener("click",function(){openSocialTab("search")});$("chatTabBtn").addEventListener("click",function(){openSocialTab("chat")});$("editProfileBtn").addEventListener("click",function(){if(!auth.currentUser){alert("Log in first.");return;}$("profileEditPanel").classList.toggle("hidden");});
+  $("saveProfileBtn").addEventListener("click",saveProfile);$("userSearchBtn").addEventListener("click",searchUsers);$("userSearchInput").addEventListener("keydown",function(e){if(e.key==="Enter")searchUsers();});$("playerLoginClose").addEventListener("click",function(){$("playerLoginOverlay").classList.add("hidden");});$("managePlayersBtn").addEventListener("click",renderPlayerManager);$("ownershipBtn").addEventListener("click",renderOwnershipPanel);
+  function canManagePlayers(){
+    if(!auth.currentUser)return false;
+    if(currentAccountId)return true;
+    return !!(activePlayer&&playerDefinitions[activePlayer.id]&&playerDefinitions[activePlayer.id].canManage===true);
+  }
+  async function renderPlayerManager(){
+    const box=$("playerManagerPanel");
+    box.classList.remove("hidden");
+    if(!canManagePlayers()){box.innerHTML='<div class="empty">Player management access is required.</div>';return;}
+    let html='<h3>Members / Players</h3><p style="color:#8290a5;font-size:11px">Player IDs are generated automatically and locked forever. No player can type, choose, or change an ID.</p>';
+    Object.keys(playerDefinitions).forEach(function(id){
+      const p=playerDefinitions[id]||{};
+      html+='<div class="manager-row"><input data-player-name="'+escapeHtml(id)+'" value="'+escapeHtml(p.name)+'"><input data-player-photo="'+escapeHtml(id)+'" placeholder="Photo URL" value="'+escapeHtml(p.photoURL||'')+'"><label style="display:flex;align-items:center;gap:4px;font-size:9px;color:#8290a5"><input type="checkbox" data-player-manage="'+escapeHtml(id)+'" '+(p.canManage===true?'checked':'')+' style="width:auto">Manage</label><div class="locked-id">ID '+escapeHtml(p.playerId||'ASSIGNING...')+'</div><button data-save-player="'+escapeHtml(id)+'">SAVE</button><button class="danger" data-delete-player="'+escapeHtml(id)+'">DELETE</button></div>';
+    });
+    html+='<button class="social-primary" id="addPlayerBtn" type="button">ADD PLAYER — AUTO ID</button>';
+    box.innerHTML=html;
+    box.querySelectorAll("button[data-save-player]").forEach(function(b){b.onclick=async function(){const id=b.dataset.savePlayer;playerDefinitions[id].name=box.querySelector('[data-player-name="'+id+'"]').value.trim()||id;playerDefinitions[id].photoURL=box.querySelector('[data-player-photo="'+id+'"]').value.trim();playerDefinitions[id].canManage=!!box.querySelector('[data-player-manage="'+id+'"]').checked;playerNames[id]=playerDefinitions[id].name;await saveData();refreshAll();await renderPlayerManager();};});
+    box.querySelectorAll("button[data-delete-player]").forEach(function(b){b.onclick=async function(){const id=b.dataset.deletePlayer;if(Object.keys(playerDefinitions).length<=1){alert("At least one player must remain.");return;}if(!confirm("Delete this player and all of their stored player data? The player's assigned ID will never be reused."))return;const oldPlayerId=playerDefinitions[id].playerId;delete playerDefinitions[id];delete playerNames[id];delete paidTotals[id];delete playerEliminationCounts[id];await db.collection("users").doc(auth.currentUser.uid).collection("players").doc(id).delete().catch(()=>{});if(oldPlayerId){await db.collection("playerIds").doc(oldPlayerId).set({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(()=>{});}await saveData();refreshAll();await renderPlayerManager();};});
+    $("addPlayerBtn").onclick=async function(){
+      let n=1;while(playerDefinitions["p"+n])n++;
+      const id="p"+n;
+      const name=prompt("New player name:");
+      if(!name)return;
+      try{
+        const playerId=await allocatePlayerId(auth.currentUser.uid,id);
+        playerDefinitions[id]={id:id,name:name.trim(),photoURL:"",playerId:playerId,canManage:false};
+        playerNames[id]=name.trim();paidTotals[id]=0;playerEliminationCounts[id]="";
+        await db.collection("users").doc(auth.currentUser.uid).collection("players").doc(id).set({id:id,playerId:playerId,name:name.trim(),photoURL:"",canManage:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        await saveData();refreshAll();await renderPlayerManager();
+        alert("Player added. Automatic Player ID: "+playerId+"\n\nThis ID cannot be changed or chosen manually.");
+      }catch(e){console.error(e);alert(e.message||"Could not add player.");}
+    };
+  }
+  function renderOwnershipPanel(){const box=$("playerManagerPanel");box.classList.remove("hidden");box.innerHTML='<div class="ownership-card"><h3>Account Ownership</h3><p style="color:#8290a5;font-size:11px">Current owner email: '+escapeHtml(auth.currentUser.email||"")+'</p><p style="color:#8290a5;font-size:11px">Changing ownership/email should be completed through Firebase email verification and re-authentication. The Dashboard ID remains attached to this account.</p><button class="social-primary" type="button" id="startEmailChangeBtn">START EMAIL CHANGE</button></div>';$("startEmailChangeBtn").onclick=async function(){const newEmail=prompt("Enter the new owner email:");if(!newEmail||!newEmail.includes("@"))return;try{await auth.currentUser.verifyBeforeUpdateEmail(newEmail.trim().toLowerCase());alert("Firebase sent a verification link to the new email. The ownership email changes only after verification.");}catch(e){alert(e.message||"Could not start email change. Recent login may be required.");}};}
+  auth.onAuthStateChanged(loadCurrentUser);
+
+$("paidAmount").addEventListener(   "input",   calculateFinancial );  $("revenueAmount").addEventListener(   "input",   calculateFinancial );  $("totalGames").addEventListener(   "input",   function(){      if(       Number($("totalGames").value) < 0     ){        $("totalGames").value = 0;      }      updateTeamInputLimits();    } );  $("rank").addEventListener(   "input",   function(){      let value =       Number($("rank").value);      if($("rank").value !== ""){        if(value < 1){         $("rank").value = 1;       }        if(value > 12){         $("rank").value = 12;       }      }    } );  $("win").addEventListener(   "input",   function(){      const games =       Number($("totalGames").value) || 0;      let value =       Number($("win").value);      if($("win").value !== ""){        if(value < 0){         $("win").value = 0;       }        if(value > games){         $("win").value = games;       }      }    } );  $("placement").addEventListener(   "input",   function(){      const games =       Number($("totalGames").value) || 0;      const max =       games * 12;      let value =       Number($("placement").value);      if($("placement").value !== ""){        if(value < 0){         $("placement").value = 0;       }        if(value > max){         $("placement").value = max;       }      }      calculateTotalPoint();    } );  $("elimination").addEventListener(   "input",   function(){      if(       $("elimination").value !== "" &&       Number($("elimination").value) < 0     ){        $("elimination").value = 0;      }      calculateTotalPoint();    } );  $("submitBtn").addEventListener(   "click",   async function(){      const requiredFields = [
+        ["revenueAmount","Revenue Amount"]
+      ];      for(       const field of requiredFields     ){        if(         $(field[0])           .value           .trim() === ""       ){          alert(           "Please fill in " +           field[1] +           " before submitting."         );          $(field[0]).focus();          return;        }      }      const totalGamesRaw = $("totalGames").value.trim();      const rankRaw = $("rank").value.trim();      const winRaw = $("win").value.trim();      const placementRaw = $("placement").value.trim();      const eliminationRaw = $("elimination").value.trim();      const totalGames = totalGamesRaw === "" ? null : Number(totalGamesRaw);      const rank = rankRaw === "" ? null : Number(rankRaw);      const win = winRaw === "" ? null : Number(winRaw);      const placement = placementRaw === "" ? null : Number(placementRaw);      const elimination = eliminationRaw === "" ? null : Number(eliminationRaw);      if(       rank !== null &&       (!Number.isFinite(rank) || rank < 1 || rank > 12)     ){        alert(         "Rank must be between 1 and 12."       );        $("rank").focus();        return;      }      if(       totalGames !== null &&       (!Number.isFinite(totalGames) || totalGames < 0)     ){        alert(         "Total Games cannot be lower than 0."       );        $("totalGames").focus();        return;      }      if(       win !== null &&       (!Number.isFinite(win) || win < 0 || (totalGames !== null && win > totalGames))     ){        alert(         "Win cannot be lower than 0 or higher than Total Games."       );        $("win").focus();        return;      }      const placementMax =       totalGames === null ? null : totalGames * 12;      if(       placement !== null &&       (!Number.isFinite(placement) || placement < 0 || (placementMax !== null && placement > placementMax))     ){        alert(         "Placement Point must be between 0 and " +         placementMax +         " for " +         totalGames +         " Total Games."       );        $("placement").focus();        return;      }      if(       elimination !== null &&       (!Number.isFinite(elimination) || elimination < 0)     ){        alert(         "Elimination Point cannot be lower than 0."       );        $("elimination").focus();        return;      }      const selectedCount =       selectedEliminations.length;      if(selectedCount > 4){        alert(         "Maximum 4 players can be selected."       );        return;      }      let eliminationTotal = 0;      selectedEliminations.forEach(       function(key){          eliminationTotal +=           Number(             playerEliminationCounts[key]           ) || 0;        }     );      if(       elimination !== null &&       eliminationTotal !== elimination     ){        alert(         "Player elimination total must exactly equal Elimination Point.\n\n" +         "Team Elimination Point: " +         elimination +         "\n" +         "Player Elimination Total: " +         eliminationTotal       );        return;      }      if(       elimination !== null &&       elimination > 0 &&       selectedCount === 0     ){        alert(         "Select player(s) in Player Elimination and enter their elimination counts."       );        return;      }      if(       elimination !== null &&       elimination === 0 &&       eliminationTotal !== 0     ){        alert(         "Player elimination total must be 0 when Elimination Point is 0."       );        return;      }      const paid =       Number($("paidAmount").value);      const revenue =       Number($("revenueAmount").value);      if(       !Number.isFinite(paid) ||       paid < 0 ||       !Number.isFinite(revenue) ||       revenue < 0     ){        alert(         "Please enter valid non-negative financial values."       );        return;      }      calculateTotalPoint();      const total =       placement === null && elimination === null       ? null       : (Number(placement) || 0) + (Number(elimination) || 0);      const financial =       calculateFinancial();      const nextNumber =       matchHistory.length > 0          ? Math.max.apply(             null,             matchHistory.map(               function(m){                 return (                   Number(m.matchNumber) ||                   0                 );               }             )           ) + 1          : 1;      const match = {        matchNumber:         nextNumber,        paid:         financial.paid,        revenue:         financial.revenue,        profitLossAmount:         financial.amount,        profitLossPercent:         financial.percentage,        profitLossType:         financial.type,        totalGames:         totalGames,        rank:         rank,        win:         win,        placement:         placement,        elimination:         elimination,        total:         total,        payer:         selectedPayer,        eliminatedPlayers:         selectedEliminations.slice(),        playerEliminationCounts:         {...playerEliminationCounts}      };      matchHistory.push(match);      paidTotals[selectedPayer] +=       financial.paid;      if(financial.difference > 0){        totalBalance +=         financial.amount;      }else if(       financial.difference < 0     ){        totalBalance -=         financial.amount;      }      saveData();      updateBalanceDisplay();      renderHomeHistory();      renderMenuHistory();      renderPaidTotals();      renderPlayerPerformance();      updateSummaryTotals();      updateTeamStatistics();      selectedEliminations = [];      playerEliminationCounts = {};Object.keys(playerDefinitions).forEach(function(k){playerEliminationCounts[k]="";});      renderEliminationPlayers();      clearForm();      alert(       "Match " +       nextNumber +       " submitted successfully."     );    } );  $("resetBtn").addEventListener(   "click",   function(){      clearForm();      selectedEliminations = [];      playerEliminationCounts = {};Object.keys(playerDefinitions).forEach(function(k){playerEliminationCounts[k]="";});      renderEliminationPlayers();    } );  $("saveNames").addEventListener(   "click",   async function(){      playerNames.p1 =       $("nameP1").value.trim() ||       "Player 1";      playerNames.p2 =       $("nameP2").value.trim() ||       "Player 2";      playerNames.p3 =       $("nameP3").value.trim() ||       "Player 3";      playerNames.p4 =       $("nameP4").value.trim() ||       "Player 4";      playerNames.p5 =       $("nameP5").value.trim() ||       "Player 5";      playerNames.balance =       "Balance";      saveData();      renderPayers();      renderEliminationPlayers();      renderPaidTotals();      renderPlayerPerformance();      renderHomeHistory();      renderMenuHistory();      alert(       "Player names saved."     );    } );  $("menuHistorySearch").addEventListener(   "input",   renderMenuHistory );  document   .querySelectorAll(".menu-item")   .forEach(     function(button){        button.addEventListener(         "click",         function(){            const target =             $(               button.getAttribute(                 "data-section"               )             );            document             .querySelectorAll(               ".menu-content"             )             .forEach(               function(section){                  if(section !== target){                    section.classList.remove(                     "active"                   );                  }                }             );            target.classList.toggle(             "active"           );          }       );      }   );  $("menuBtn").addEventListener(   "click",   function(){      $("sideMenu").classList.add(       "open"     );    } );  $("closeMenu").addEventListener(   "click",   function(){      $("sideMenu").classList.remove(       "open"     );    } );  loadData();  renderNames();  renderPayers();  renderEliminationPlayers();  renderPaidTotals();  renderPlayerPerformance();  renderHomeHistory();  renderMenuHistory();  updateSummaryTotals();  updateTeamStatistics();  updateBalanceDisplay();  calculateFinancial();  updateTeamInputLimits();  /* Press Enter to move to the next visible input. This also works in Login/Create Account. */
+  document.addEventListener("keydown",function(event){
+    if(event.key !== "Enter") return;
+    const target = event.target;
+    if(!(target instanceof HTMLInputElement)) return;
+    if(target.disabled || target.readOnly) return;
+    if(target.id === "menuHistorySearch") return;
+
+    const authOpen = !$("authOverlay").classList.contains("hidden");
+    let inputs;
+
+    if(authOpen){
+      const activeForm = $("loginForm").classList.contains("active") ? $("loginForm") : $("createForm");
+      inputs = Array.from(activeForm.querySelectorAll("input:not([disabled]):not([readonly])"));
+    }else{
+      inputs = Array.from(document.querySelectorAll("input:not([disabled]):not([readonly])"))
+        .filter(function(input){
+          return input.offsetParent !== null && input.id !== "menuHistorySearch";
+        });
+    }
+
+    const index = inputs.indexOf(target);
+    if(index === -1) return;
+    const next = inputs[index + 1];
+    if(next){
+      event.preventDefault();
+      next.focus();
+      if(next.select) next.select();
+    }
+  });
+
+  /*   IMPORTANT:   Prevent mouse wheel from changing   number inputs, while keeping normal   page scrolling enabled. */ document   .querySelectorAll('input[type="number"]')   .forEach(function(input){      input.addEventListener(       "wheel",       function(event){         event.preventDefault();       },       {passive:false}     );    });  })();  </script>  </body> </html> &#x20;
